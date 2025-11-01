@@ -56,11 +56,13 @@
 - Works across diverse asset classes (commodities, currencies, bonds, equity indices)
 - Provides diversification benefits and works in different market environments
 
-## Hühn and Scholz 2018: Momentum Dynamics: Duration and Magnitude-Dependence
-- Analyzes how the duration and magnitude of past performance affect momentum
-- Finds that both longer duration trends and larger magnitude moves predict stronger momentum
-- Explores the dynamics of trend formation and reversal patterns
-- Provides insights for optimizing momentum strategy parameters
+## Hühn and Scholz 2018: Alpha Momentum and Price Momentum
+- Introduces alpha momentum strategy that ranks stocks based on three-factor alphas estimated using daily returns
+- Compares alpha momentum (based on stock-specific returns) to traditional price momentum
+- Finds alpha momentum exhibits less dynamic factor exposures and is less volatile than price momentum
+- Alpha momentum dominates price momentum in the U.S. but no clear dominance in Europe
+- Connects strategies to behavioral explanations: alpha momentum relates more to underreaction to firm-specific news while price momentum is driven by price overshooting due to momentum trading
+- Both strategies are sensitive to investor sentiment, with higher profits in optimistic periods
 
 ## AQR 2009: The Case for Momentum Investing
 - Practical guide to implementing momentum strategies

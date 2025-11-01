@@ -3,7 +3,12 @@ name = "sf-research-momentum"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.11,<3.14"
 dependencies = [
+    "matplotlib>=3.10.7",
+    "numpy>=2.3.4",
+    "polars>=1.35.1",
+    "pyarrow>=22.0.0",
+    "seaborn>=0.13.2",
     "sf-quant>=0.1.14",
 ]
