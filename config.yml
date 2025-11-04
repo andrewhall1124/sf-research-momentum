@@ -1,0 +1,17 @@
+name: Idiosyncratic Momentum Decile Backtest
+start: 1963-07-31
+end: 2015-12-31
+rebalance-frequency: monthly
+dataset: crsp
+
+signal: idiosyncratic-momentum-ff3
+
+portfolio-constructor:
+  type: quantile
+  n-bins: 10
+  weighting-scheme: equal
+
+filters:
+  - penny-stocks
+  - micro-caps
+  - null-signal
