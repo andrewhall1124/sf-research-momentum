@@ -12,6 +12,7 @@ datasets:
 signal: idiosyncratic_momentum_ff3
 n-bins: 10
 weighting-scheme: equal
+annualized-results: false
 
 filters:
   - penny-stocks

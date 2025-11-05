@@ -11,8 +11,8 @@ from pathlib import Path
 def backtest(config: Config):
     print("Loading data...")
     data = load_data(config)
-
-    print("Construction signals...")
+    
+    print("Constructing signals...")
     signals = construct_signals(data=data, config=config)
 
     print("Applying filters...")

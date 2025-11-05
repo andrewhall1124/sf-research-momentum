@@ -49,5 +49,7 @@ def construct_returns(data: pl.DataFrame, config: Config) -> pl.DataFrame:
             )
             .sort('date')
         )
+    else:
+        raise ValueError(f"Unsupported rebalance frequency: {config.rebalance_frequency}. Supported values are 'daily' or 'monthly'.")
 
     return result

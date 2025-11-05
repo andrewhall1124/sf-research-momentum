@@ -1,4 +1,4 @@
-from src.models import Signal, Config
+from models import Signal, Config
 import polars as pl
 
 def momentum() -> Signal:

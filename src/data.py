@@ -12,7 +12,10 @@ def _get_columns(config: Config) -> list[str]:
     for filter_ in config.filters:
         filter_columns.extend(filter_.columns)
 
-    return list(set(signal_columns + filter_columns))
+    # Always include 'date' and 'permno' for the forward return calculation
+    all_columns = list(set(signal_columns + filter_columns + ['date', 'permno']))
+
+    return all_columns
 
 def _load_universe(dataset: str, start: dt.date, end: dt.date) -> pl.DataFrame:
     match dataset:
@@ -62,12 +65,11 @@ def load_data(config: Config) -> pl.DataFrame:
     data = (
         data
         .select(columns)
-        .sort('permno', 'date')
-        .with_columns(_get_fwd_return_expr(config=config))
         .filter(
             pl.col('date').is_between(config.start, config.end)
         )
         .sort('permno', 'date')
+        .with_columns(_get_fwd_return_expr(config=config))
     )
 
     return data.collect()

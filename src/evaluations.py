@@ -60,7 +60,7 @@ def create_quantile_returns_chart(returns: pl.DataFrame, config: Config, file_pa
     plt.figure(figsize=(10, 6))
 
     labels = [str(i) for i in range(config.n_bins)]
-    colors = sns.color_palette(palette="coolwarm", n_colors=10)
+    colors = sns.color_palette(palette="coolwarm", n_colors=config.n_bins)
 
     for label, color in zip(labels, colors):
         sns.lineplot(df_cumulative_returns, x="date", y=label, color=color)

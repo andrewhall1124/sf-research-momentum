@@ -1,4 +1,4 @@
-from src.models import Filter, Config
+from models import Filter, Config
 import polars as pl
 
 def penny_stocks() -> Filter:
