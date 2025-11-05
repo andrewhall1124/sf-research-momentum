@@ -1,9 +1,9 @@
 name: Momentum Equal Weight Decile Backtest
-output-path: results/momentum/quantile/momentum-quantile-equal-monthly.parquet
+output-path: results/momentum/quantile/momentum-quantile-equal-monthly
 start: 1963-07-31
 end: 2015-12-31
 rebalance-frequency: monthly
-annualize-results: False
+annualize-results: false
 
 datasets: 
 - crsp
@@ -11,8 +11,9 @@ datasets:
 signal: momentum
 n-bins: 10
 weighting-scheme: equal
+annualized-results: false
 
 filters:
-  - penny-stocks
-  - micro-caps
-  - null-signal
+- penny-stocks
+- micro-caps
+- null-signal

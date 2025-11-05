@@ -1,19 +1,20 @@
 name: Idiosyncratic Momentum FF3 Equal Weight Decile Backtest
-output-path: results/idiosyncrat-momentum-ff3/quantile/idiosyncratic-momentum-ff3-quantile-equal-monthly.parquet
+output-path: results/idiosyncrat-momentum-ff3/quantile/idiosyncratic-momentum-ff3-quantile-equal-monthly
 start: 1963-07-31
 end: 2015-12-31
 rebalance-frequency: monthly
+annualized-results: false
 
 datasets: 
 - crsp
 - ff3
 - crsp_ff3_betas
 
-signal: momentum
+signal: idiosyncratic_momentum_ff3
 n-bins: 10
 weighting-scheme: equal
 
 filters:
-  - penny-stocks
-  - micro-caps
-  - null-signal
+- penny-stocks
+- micro-caps
+- null-signal

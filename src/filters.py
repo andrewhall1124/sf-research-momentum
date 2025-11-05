@@ -22,6 +22,13 @@ def null_signal(signal_name: str) -> Filter:
         columns=[]
     )
 
+def low_price_stocks() -> Filter:
+    return Filter(
+        name=low_price_stocks.__name__,
+        expr=pl.col('price').gt(5),
+        columns=['price']
+    )
+
 def get_filter(name: str, **kwargs) -> Filter:
     signal_name = kwargs.get('signal_name')
     match name:
@@ -31,6 +38,8 @@ def get_filter(name: str, **kwargs) -> Filter:
             return micro_caps()
         case 'null-signal':
             return null_signal(signal_name)
+        case 'low-price-stocks':
+            return low_price_stocks()
         case _:
             raise ValueError
         

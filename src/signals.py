@@ -3,7 +3,7 @@ import polars as pl
 
 def momentum() -> Signal:
     return Signal(
-        name='momentum',
+        name=momentum.__name__,
         expr=pl.col('return').log1p().rolling_sum(window_size=230).shift(22).over('permno').alias(momentum.__name__),
         columns=['permno', 'return'],
         lookback_days=252

@@ -65,11 +65,12 @@ def load_data(config: Config) -> pl.DataFrame:
     data = (
         data
         .select(columns)
+        .sort('permno', 'date')
+        .with_columns(_get_fwd_return_expr(config=config))
         .filter(
             pl.col('date').is_between(config.start, config.end)
         )
         .sort('permno', 'date')
-        .with_columns(_get_fwd_return_expr(config=config))
     )
 
     return data.collect()
