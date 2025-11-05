@@ -44,5 +44,6 @@ def load_config(config_path: str = "config.yml") -> Config:
         n_bins=raw_config.get('n-bins'),
         weighting_scheme=raw_config.get('weighting-scheme'),
         filters=filters,
-        output_path=raw_config.get('output-path')
+        output_path=raw_config.get('output-path'),
+        annualize_results=raw_config.get('annualized-results')
     )

@@ -1,5 +1,6 @@
 Momentum Equal Weight Decile Backtest
 Period: 1963-07-31 to 2015-12-31
+Annualized: No
 
 shape: (11, 4)
 ┌────────┬─────────────┬────────────┬────────┐

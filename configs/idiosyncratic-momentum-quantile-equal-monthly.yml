@@ -9,7 +9,7 @@ datasets:
 - ff3
 - crsp_ff3_betas
 
-signal: idiosyncratic_momentum_ff3
+signal: momentum
 n-bins: 10
 weighting-scheme: equal
 

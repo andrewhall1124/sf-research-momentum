@@ -35,3 +35,4 @@ class Config:
     weighting_scheme: str
     filters: list[Filter]
     output_path: str
+    annualize_results: bool

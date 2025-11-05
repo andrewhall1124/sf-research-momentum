@@ -7,10 +7,10 @@ from pathlib import Path
 
 pl.Config.set_tbl_rows(n=11)
 
-def create_summary_table(returns: pl.DataFrame, config: Config, annualize: bool, file_path: Path) -> pl.DataFrame:
+def create_summary_table(returns: pl.DataFrame, config: Config, file_path: Path) -> pl.DataFrame:
     annual_factor = 1
 
-    if annualize:
+    if config.annualize_results:
         match config.rebalance_frequency:
             case 'daily':
                 annual_factor = 252
@@ -40,7 +40,8 @@ def create_summary_table(returns: pl.DataFrame, config: Config, annualize: bool,
     output_file = file_path.with_suffix('.txt') if isinstance(file_path, Path) else Path(file_path).with_suffix('.txt')
     with open(output_file, 'w') as f:
         f.write(f"{config.name}\n")
-        f.write(f"Period: {config.start} to {config.end}\n\n")
+        f.write(f"Period: {config.start} to {config.end}\n")
+        f.write(f"Annualized: {'Yes' if config.annualize_results else 'No'}\n\n")
         f.write(str(summary_table))
 
     return summary_table

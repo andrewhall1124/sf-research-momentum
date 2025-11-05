@@ -9,26 +9,26 @@ from models import Config
 from pathlib import Path
 
 def backtest(config: Config):
-    # Load data
+    print("Loading data...")
     data = load_data(config)
 
-    # Construct signals
+    print("Construction signals...")
     signals = construct_signals(data=data, config=config)
 
-    # Apply filters
+    print("Applying filters...")
     filtered = apply_filters(signals=signals, config=config)
 
-    # Construct portfolios
+    print("Constructing portfolios...")
     portfolios = construct_portfolios(filtered, config=config)
 
-    # Construct historical returns
+    print("Constructing returns...")
     returns = construct_returns(portfolios, config=config)
 
-    # Create output path
+    print("Saving results...")
     output_path = Path(config.output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    create_summary_table(returns=returns, config=config, annualize=False, file_path=output_path)
+    create_summary_table(returns=returns, config=config, file_path=output_path)
     create_quantile_returns_chart(returns=returns, config=config, file_path=output_path)
 
 if __name__ == '__main__':
