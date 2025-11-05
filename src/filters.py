@@ -1,4 +1,4 @@
-from src.models import Filter
+from src.models import Filter, Config
 import polars as pl
 
 def penny_stocks() -> Filter:
@@ -15,20 +15,30 @@ def micro_caps() -> Filter:
         columns=['date', 'market_cap']
     )
 
-def null_signal() -> Filter:
+def null_signal(signal_name: str) -> Filter:
     return Filter(
         name=null_signal.__name__,
-        expr=pl.col('signal').is_not_null(),
-        columns=['signal']
+        expr=pl.col(signal_name).is_not_null(),
+        columns=[]
     )
 
-def get_filter(name: str) -> Filter:
+def get_filter(name: str, **kwargs) -> Filter:
+    signal_name = kwargs.get('signal_name')
     match name:
         case 'penny-stocks':
             return penny_stocks()
         case 'micro-caps':
             return micro_caps()
         case 'null-signal':
-            return null_signal()
+            return null_signal(signal_name)
         case _:
             raise ValueError
+        
+def apply_filters(signals: pl.DataFrame, config: Config) -> pl.DataFrame:
+    return (
+        signals
+        .filter(
+            [filter_.expr for filter_ in config.filters]
+        )
+        .sort('permno', 'date')
+    )

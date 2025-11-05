@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 import polars as pl
+import datetime as dt
 
 @dataclass
 class Signal:
@@ -18,3 +19,19 @@ class Filter:
 class Dataset:
     name: str
     primary_keys: list[str]
+    source: str
+
+@dataclass
+class Config:
+    """Configuration dataclass for backtest parameters."""
+
+    name: str
+    start: dt.date
+    end: dt.date
+    rebalance_frequency: str
+    datasets: list[str]
+    signal: Signal
+    n_bins: int
+    weighting_scheme: str
+    filters: list[Filter]
+    output_path: str
