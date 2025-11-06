@@ -1,9 +1,9 @@
 name: Momentum Equal Weight Decile Backtest
-output-path: results/mom/select-sample/momentum-select-sample-equal
-start: 2000-01-01
-end: 2024-12-31
+output-path: results/mom/in-sample/momentum-in-sample-equal
+start: 1963-07-31
+end: 2015-12-31
 rebalance-frequency: monthly
-annualize-results: true
+annualize-results: false
 
 datasets: 
 - crsp
@@ -13,7 +13,7 @@ datasets:
 signal: momentum
 n-bins: 10
 weighting-scheme: equal
-annualized-results: true
+annualized-results: false
 
 filters:
 - null-idiosyncratic-momentum

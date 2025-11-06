@@ -1,38 +1,27 @@
 import polars as pl
 import pandas as pd
-import sf_quant.data as sfd
 import datetime as dt
-import polars_ols as ols
 import statsmodels.api as sm
 from statsmodels.regression.rolling import RollingOLS
 from tqdm import tqdm
-import seaborn as sns
-import matplotlib.pyplot as plt
-import numpy as np
 from pathlib import Path
 
-def crsp_ff3_betas_flow(start: dt.date | None = None, end: dt.date | None = None) -> None:
+
+def crsp_ff3_betas_flow(
+    start: dt.date | None = None, end: dt.date | None = None
+) -> None:
     start = start or dt.date(1926, 7, 1)
     end = end or dt.date.today()
 
-    df_crsp = pl.read_parquet('data/crsp/crsp_*.parquet').sort('permno', 'date')
+    df_crsp = pl.read_parquet("data/crsp/crsp_*.parquet").sort("permno", "date")
 
-    df_ff3fm = pl.read_parquet('data/fama_french/ff3_factors.parquet')
+    df_ff3fm = pl.read_parquet("data/fama_french/ff3_factors.parquet")
 
     df_merge = (
-        df_crsp
-        .join(
-            other=df_ff3fm,
-            on='date',
-            how='left'
-        )
-        .with_columns(
-            pl.col('return').sub('rf').alias('return_rf')
-        )
-        .filter(
-            pl.col('date').is_between(start, end)
-        )
-        .sort('permno', 'date')
+        df_crsp.join(other=df_ff3fm, on="date", how="left")
+        .with_columns(pl.col("return").sub("rf").alias("return_rf"))
+        .filter(pl.col("date").is_between(start, end))
+        .sort("permno", "date")
     )
 
     # Regression model
@@ -68,41 +57,35 @@ def crsp_ff3_betas_flow(start: dt.date | None = None, end: dt.date | None = None
     # Compute regression coefficients
     tqdm.pandas(desc="Computing model coefficients")
     df_betas: pl.DataFrame = pl.from_pandas(
-        df_merge
-        .to_pandas()
-        .groupby(by='permno')
+        df_merge.to_pandas()
+        .groupby(by="permno")
         .progress_apply(
-            lambda x: rolling_ff3_regression(x[['date', 'return_rf', 'mkt_rf', 'smb', 'hml']], window=36 * 21),
-            include_groups=False
+            lambda x: rolling_ff3_regression(
+                x[["date", "return_rf", "mkt_rf", "smb", "hml"]], window=36 * 21
+            ),
+            include_groups=False,
         )
         .reset_index(level=0)
         .reset_index(drop=True)
     )
 
-    df_clean = (
-        df_betas
-        .select(
-            pl.col('date').dt.date(),
-            'permno',
-            'alpha',
-            'beta_mkt',
-            'beta_smb',
-            'beta_hml'
-        )
+    df_clean = df_betas.select(
+        pl.col("date").dt.date(), "permno", "alpha", "beta_mkt", "beta_smb", "beta_hml"
     )
 
-    min_year = df_clean['date'].min().year
-    max_year = df_clean['date'].max().year
+    min_year = df_clean["date"].min().year
+    max_year = df_clean["date"].max().year
     years = list(range(min_year, max_year + 1))
 
     for year in tqdm(years, "Writing CRSP FF3 Betas"):
-        df_year = df_clean.filter(pl.col('date').dt.year().eq(year))
+        df_year = df_clean.filter(pl.col("date").dt.year().eq(year))
 
         # Create output directory
-        file_path = Path(f'data/crsp_ff3_betas/crsp_ff3_betas_{year}.parquet')
+        file_path = Path(f"data/crsp_ff3_betas/crsp_ff3_betas_{year}.parquet")
         file_path.parent.mkdir(parents=True, exist_ok=True)
 
         df_year.write_parquet(file_path)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     crsp_ff3_betas_flow()

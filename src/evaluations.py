@@ -7,38 +7,43 @@ from pathlib import Path
 
 pl.Config.set_tbl_rows(n=11)
 
-def create_summary_table(returns: pl.DataFrame, config: Config, file_path: Path) -> pl.DataFrame:
+
+def create_summary_table(
+    returns: pl.DataFrame, config: Config, file_path: Path
+) -> pl.DataFrame:
     annual_factor = 1
 
     if config.annualize_results:
         match config.rebalance_frequency:
-            case 'daily':
+            case "daily":
                 annual_factor = 252
-            case 'monthly':
+            case "monthly":
                 annual_factor = 12
             case _:
                 raise ValueError(f"{config.rebalance_frequency} is not supported!")
 
     summary_table = (
-        returns
-        .unpivot(index='date', variable_name='bin', value_name='return')
-        .group_by('bin')
+        returns.unpivot(index="date", variable_name="bin", value_name="return")
+        .group_by("bin")
         .agg(
-            pl.col('return').mean().mul(100 * annual_factor).alias('mean_return'),
-            pl.col('return').std().mul(100 * np.sqrt(annual_factor)).alias('volatility'),
+            pl.col("return").mean().mul(100 * annual_factor).alias("mean_return"),
+            pl.col("return")
+            .std()
+            .mul(100 * np.sqrt(annual_factor))
+            .alias("volatility"),
         )
-        .with_columns(
-            pl.col('mean_return').truediv('volatility').alias('sharpe')
-        )
-        .with_columns(
-            pl.exclude('bin').round(2)
-        )
-        .sort('bin')
+        .with_columns(pl.col("mean_return").truediv("volatility").alias("sharpe"))
+        .with_columns(pl.exclude("bin").round(2))
+        .sort("bin")
     )
 
     # Save the DataFrame as a string to the file
-    output_file = file_path.with_suffix('.txt') if isinstance(file_path, Path) else Path(file_path).with_suffix('.txt')
-    with open(output_file, 'w') as f:
+    output_file = (
+        file_path.with_suffix(".txt")
+        if isinstance(file_path, Path)
+        else Path(file_path).with_suffix(".txt")
+    )
+    with open(output_file, "w") as f:
         f.write(f"{config.name}\n")
         f.write(f"Period: {config.start} to {config.end}\n")
         f.write(f"Annualized: {'Yes' if config.annualize_results else 'No'}\n\n")
@@ -47,15 +52,12 @@ def create_summary_table(returns: pl.DataFrame, config: Config, file_path: Path)
     return summary_table
 
 
-def create_quantile_returns_chart(returns: pl.DataFrame, config: Config, file_path: str) -> None:
-    df_cumulative_returns = (
-        returns
-        .sort('date')
-        .with_columns(
-            pl.exclude('date').log1p().cum_sum()
-        )
+def create_quantile_returns_chart(
+    returns: pl.DataFrame, config: Config, file_path: str
+) -> None:
+    df_cumulative_returns = returns.sort("date").with_columns(
+        pl.exclude("date").log1p().cum_sum()
     )
-
 
     plt.figure(figsize=(10, 6))
 
@@ -71,5 +73,5 @@ def create_quantile_returns_chart(returns: pl.DataFrame, config: Config, file_pa
     plt.xlabel(None)
     plt.ylabel("Cumulative Log Return (%)")
 
-    output_file = Path(file_path).with_suffix('.png')
+    output_file = Path(file_path).with_suffix(".png")
     plt.savefig(output_file, dpi=300)

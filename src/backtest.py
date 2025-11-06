@@ -8,6 +8,7 @@ from evaluations import create_summary_table, create_quantile_returns_chart
 from models import Config
 from pathlib import Path
 
+
 def backtest(config: Config):
     print("Loading data...")
     data = load_data(config)
@@ -31,7 +32,8 @@ def backtest(config: Config):
     create_summary_table(returns=returns, config=config, file_path=output_path)
     create_quantile_returns_chart(returns=returns, config=config, file_path=output_path)
 
-if __name__ == '__main__':
-    config_path = 'config.yml'
+
+if __name__ == "__main__":
+    config_path = "config.yml"
     config = load_config(config_path)
     backtest(config)
