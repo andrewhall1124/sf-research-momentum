@@ -3,7 +3,7 @@ output-path: results/idio-mom-ff3/select-sample/idio-mom-ff3-select-sample-equal
 start: 2000-01-01
 end: 2024-12-31
 rebalance-frequency: monthly
-annualized-results: true
+annualized-results: false
 
 datasets: 
 - crsp

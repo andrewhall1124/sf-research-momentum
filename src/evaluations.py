@@ -4,13 +4,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from pathlib import Path
+import statsmodels.formula.api as smf
 
 pl.Config.set_tbl_rows(n=11)
+pl.Config.set_tbl_cols(n=10)
 
 
 def create_summary_table(
     returns: pl.DataFrame, config: Config, file_path: Path
 ) -> pl.DataFrame:
+    factors = pl.read_parquet("data/fama_french/ff5_factors.parquet")
+
     annual_factor = 1
 
     if config.annualize_results:
@@ -22,17 +26,65 @@ def create_summary_table(
             case _:
                 raise ValueError(f"{config.rebalance_frequency} is not supported!")
 
+    bins = [str(i) for i in range(config.n_bins)] + ['spread']
+    merged = (
+        returns
+        .unpivot(index="date", variable_name="bin", value_name="return")
+        .join(
+            other=factors,
+            on='date',
+            how='left'
+        )
+        .with_columns(
+            pl.col('return').sub('rf').alias('return_rf')
+        )
+    )
+
+    # Define regression specifications
+    regressions = [
+        {'name': 'CAPM', 'formula': "return_rf ~ mkt_rf"},
+        {'name': '3FM', 'formula': "return_rf ~ mkt_rf + smb + hml"},
+        {'name': '5FM', 'formula': "return_rf ~ mkt_rf + smb + hml + rmw + cma"},
+    ]
+
+    bins = [str(i) for i in range(config.n_bins)] + ['spread']
+
+    # Run regressions for each model and bin
+    regression_results_list = []
+    for bin_value in bins:
+        # Filter once per bin
+        bin_data = merged.filter(pl.col('bin') == bin_value).to_pandas()
+
+        result_row = {'bin': bin_value}
+        for regression in regressions:
+            model = smf.ols(formula=regression['formula'], data=bin_data)
+            fitted = model.fit()
+
+            # Extract alpha and t-stat
+            result_row[f"{regression['name']}_alpha"] = fitted.params['Intercept'] * 100
+            result_row[f"{regression['name']}_tstat"] = fitted.tvalues['Intercept']
+
+        regression_results_list.append(result_row)
+
+    # Convert to polars and pivot for better readability
+    regression_results = pl.DataFrame(regression_results_list)
+
     summary_table = (
-        returns.unpivot(index="date", variable_name="bin", value_name="return")
+        merged
         .group_by("bin")
         .agg(
-            pl.col("return").mean().mul(100 * annual_factor).alias("mean_return"),
+            pl.col("return_rf").mean().mul(100 * annual_factor).alias("excess_return"),
             pl.col("return")
             .std()
             .mul(100 * np.sqrt(annual_factor))
             .alias("volatility"),
         )
-        .with_columns(pl.col("mean_return").truediv("volatility").alias("sharpe"))
+        .with_columns(pl.col("excess_return").truediv("volatility").alias("sharpe"))
+        .join(
+            other=regression_results,
+            on='bin',
+            how='left'
+        )
         .with_columns(pl.exclude("bin").round(2))
         .sort("bin")
     )
@@ -64,14 +116,23 @@ def create_quantile_returns_chart(
     labels = [str(i) for i in range(config.n_bins)]
     colors = sns.color_palette(palette="coolwarm", n_colors=config.n_bins)
 
-    for label, color in zip(labels, colors):
-        sns.lineplot(df_cumulative_returns, x="date", y=label, color=color)
+    for i, (label, color) in enumerate(zip(labels, colors)):
+        sns.lineplot(
+            df_cumulative_returns,
+            x="date",
+            y=label,
+            color=color,
+            label=f"D{i+1}",
+        )
 
-    sns.lineplot(df_cumulative_returns, x="date", y="spread", color="green")
+    sns.lineplot(
+        df_cumulative_returns, x="date", y="spread", color="green", label="Spread (D10-D1)"
+    )
 
     plt.title(config.name)
     plt.xlabel(None)
     plt.ylabel("Cumulative Log Return (%)")
+    plt.legend(loc="best")
 
     output_file = Path(file_path).with_suffix(".png")
     plt.savefig(output_file, dpi=300)
