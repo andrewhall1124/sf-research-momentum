@@ -1,5 +1,5 @@
-name: Idiosyncratic Momentum FF3 Equal Weight Decile Backtest
-output-path: results/idio-mom-ff3/out-of-sample/idio-mom-ff3-out-of-sample-equal
+name: Idiosyncratic Momentum Vol Scaled FF3 Equal Weight Decile Backtest
+output-path: results/idio-mom-vol-scaled-ff3/out-of-sample/idio-mom-vol-scaled-ff3-out-of-sample-equal
 start: 2016-01-01
 end: 2024-12-31
 rebalance-frequency: monthly
@@ -10,7 +10,7 @@ datasets:
 - ff3
 - crsp_ff3_betas
 
-signal: idio_mom_ff3
+signal: idio_mom_vol_scaled_ff3
 n-bins: 10
 weighting-scheme: equal
 

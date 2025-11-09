@@ -14,7 +14,7 @@ def cli():
 
 
 @cli.command()
-@click.argument("config_path", type=click.Path(exists=True, path_type=Path))
+@click.option("--config-path", type=click.Path(exists=True, path_type=Path), default="config.yml")
 def run(config_path: Path):
     """
     Run a backtest using the specified config file.
