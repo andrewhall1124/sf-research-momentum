@@ -5,9 +5,8 @@ from pathlib import Path
 
 import click
 
-from research.backtest import mve_backtest, quantile_backtest
-from research.config import (load_mve_backtest_config,
-                             load_quantile_backtest_config)
+from research.backtest import mve_backtest, mve_backtest_parallel, quantile_backtest, single_year_backtest
+from research.config import load_mve_backtest_config, load_quantile_backtest_config
 
 
 @click.group()
@@ -94,7 +93,13 @@ def run_all_quantile_backtest(config_dir: Path):
     type=click.Path(exists=True, path_type=Path),
     default="mve_backtest_cfg.yml",
 )
-def run_mve_backtest(config_path: Path):
+@click.option(
+    "--parallel",
+    is_flag=True,
+    default=False,
+    help="Run backtest in parallel using SLURM jobs for each year",
+)
+def run_mve_backtest(config_path: Path, parallel: bool):
     """
     Run a MVE backtest using the specified config file.
 
@@ -103,14 +108,83 @@ def run_mve_backtest(config_path: Path):
     Example:
         python -m research run mve_backtest_cfg.yml
         python -m research run configs/quantile/mom/mom-select-sample-zero-beta.yml
+        python -m research run mve_backtest_cfg.yml --parallel
     """
     click.echo(f"Loading config from: {config_path}")
     config = load_mve_backtest_config(str(config_path))
 
     click.echo(f"Starting backtest: {config.name}")
-    mve_backtest(config)
+    if parallel:
+        click.echo("Running in parallel mode (submitting SLURM jobs)...")
+        mve_backtest_parallel(config)
+        click.echo("SLURM jobs submitted! Check logs/ directory for job outputs.")
+    else:
+        mve_backtest(config)
+        click.echo(f"Backtest completed! Results saved to: {config.output_path}")
 
-    click.echo(f"Backtest completed! Results saved to: {config.output_path}")
+
+@cli.command()
+@click.option(
+    "--config-path",
+    type=click.Path(exists=True, path_type=Path),
+    default="mve_backtest_cfg.yml",
+)
+@click.option(
+    "--signal-name",
+    type=str,
+    required=True,
+    help="Name of the signal to backtest",
+)
+@click.option(
+    "--year",
+    type=int,
+    required=True,
+    help="Year to run the backtest for",
+)
+@click.option(
+    "--n-cpus",
+    type=int,
+    default=1,
+    help="Number of CPUs to use for parallel processing",
+)
+@click.option(
+    "--alphas-path",
+    type=click.Path(path_type=Path),
+    required=True,
+    help="Path to alphas",
+)
+@click.option(
+    "--output-path",
+    type=click.Path(path_type=Path),
+    required=True,
+    help="Path to save the backtest results",
+)
+def run_single_year_mve_backtest(
+    config_path: Path,
+    signal_name: str,
+    year: int,
+    n_cpus: int,
+    alphas_path: Path,
+    output_path: Path,
+):
+    config = load_mve_backtest_config(config_path)
+    constraints = [c.constraint for c in config.constraints]
+
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    weights = single_year_backtest(
+        gamma=config.gamma,
+        year=year,
+        n_cpus=n_cpus,
+        alphas_path=alphas_path,
+        constraints=constraints,
+    )
+
+    if weights is not None:
+        weights.write_parquet(output_path.with_suffix(".parquet"))
+    else:
+        click.echo(f"No weights generated for {signal_name} {year} - alphas may be empty")
 
 
 if __name__ == "__main__":
