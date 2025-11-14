@@ -1,7 +1,5 @@
 from pathlib import Path
 
-import polars as pl
-
 from research.alpha_constructors import construct_alphas
 from research.data import load_data
 from research.evaluations import (create_mve_returns_chart,

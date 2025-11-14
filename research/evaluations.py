@@ -142,10 +142,7 @@ def create_mve_summary_table(
     start: dt.date,
     end: dt.date,
 ) -> pl.DataFrame:
-    factors = pl.read_parquet("data/fama_french/ff5_factors.parquet")
-
     annual_factor = 1
-
     if annualize_results:
         match rebalance_frequency:
             case "daily":
@@ -155,35 +152,8 @@ def create_mve_summary_table(
             case _:
                 raise ValueError(f"{rebalance_frequency} is not supported!")
 
-    merged = returns.join(other=factors, on="date", how="left").with_columns(
-        pl.col("return").sub("rf").alias("return_rf")
-    )
-
-    # Define regression specifications
-    regressions = [
-        {"name": "CAPM", "formula": "return_rf ~ mkt_rf"},
-        {"name": "3FM", "formula": "return_rf ~ mkt_rf + smb + hml"},
-        {"name": "5FM", "formula": "return_rf ~ mkt_rf + smb + hml + rmw + cma"},
-    ]
-
-    # Run regressions for each model and bin
-    regression_results_list = []
-    for regression in regressions:
-        result_row = {"portfolio": "total"}
-        model = smf.ols(formula=regression["formula"], data=merged)
-        fitted = model.fit()
-
-        # Extract alpha and t-stat
-        result_row[f"{regression['name']}_alpha"] = fitted.params["Intercept"] * 100
-        result_row[f"{regression['name']}_tstat"] = fitted.tvalues["Intercept"]
-
-    regression_results_list.append(result_row)
-
-    # Convert to polars and pivot for better readability
-    regression_results = pl.DataFrame(regression_results_list)
-
     summary_table = (
-        merged.select(
+        returns.select(
             pl.lit("total").alias("portfolio"),
             pl.col("return").mean().mul(100 * annual_factor).alias("mean_return"),
             pl.col("return")
@@ -192,7 +162,6 @@ def create_mve_summary_table(
             .alias("volatility"),
         )
         .with_columns(pl.col("mean_return").truediv("volatility").alias("sharpe"))
-        .join(other=regression_results, on="portfolio", how="left")
         .with_columns(pl.exclude("portfolio").round(2))
     )
 
