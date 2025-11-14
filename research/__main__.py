@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 """CLI for running momentum backtests."""
 
-import click
 from pathlib import Path
-from config import load_config
-from backtest import backtest
+
+import click
+
+from research.backtest import mve_backtest, quantile_backtest
+from research.config import (load_mve_backtest_config,
+                             load_quantile_backtest_config)
 
 
 @click.group()
@@ -14,22 +17,26 @@ def cli():
 
 
 @cli.command()
-@click.option("--config-path", type=click.Path(exists=True, path_type=Path), default="config.yml")
-def run(config_path: Path):
+@click.option(
+    "--config-path",
+    type=click.Path(exists=True, path_type=Path),
+    default="quantile_backtest_cfg.yml",
+)
+def run_quantile_backtest(config_path: Path):
     """
-    Run a backtest using the specified config file.
+    Run a quantile backtest using the specified config file.
 
     CONFIG_PATH: Path to the YAML configuration file
 
     Example:
-        python -m research run config.yml
-        python -m research run configs/mom/mom-in-sample-equal.yml
+        python -m research run quantile_backtest_cfg.yml
+        python -m research run configs/quantile/mom/mom-in-sample-equal.yml
     """
     click.echo(f"Loading config from: {config_path}")
-    config = load_config(str(config_path))
+    config = load_quantile_backtest_config(str(config_path))
 
     click.echo(f"Starting backtest: {config.name}")
-    backtest(config)
+    quantile_backtest(config)
 
     click.echo(f"Backtest completed! Results saved to: {config.output_path}")
 
@@ -38,10 +45,10 @@ def run(config_path: Path):
 @click.option(
     "--config-dir",
     type=click.Path(exists=True, file_okay=False, path_type=Path),
-    default="configs",
-    help="Directory containing config subdirectories (default: configs)",
+    default="configs/quantile",
+    help="Directory containing config subdirectories (default: configs/quantile)",
 )
-def run_all(config_dir: Path):
+def run_all_quantile_backtest(config_dir: Path):
     """
     Run backtests for all config files found in the config directory.
 
@@ -63,12 +70,14 @@ def run_all(config_dir: Path):
     click.echo()
 
     for i, config_path in enumerate(config_files, 1):
-        click.echo(f"[{i}/{len(config_files)}] Processing: {config_path.relative_to(config_dir.parent)}")
+        click.echo(
+            f"[{i}/{len(config_files)}] Processing: {config_path.relative_to(config_dir.parent)}"
+        )
 
         try:
-            config = load_config(str(config_path))
+            config = load_quantile_backtest_config(str(config_path))
             click.echo(f"  Running: {config.name}")
-            backtest(config)
+            quantile_backtest(config)
             click.echo(f"   Completed! Results saved to: {config.output_path}")
         except Exception as e:
             click.echo(f"   Error: {e}", err=True)
@@ -77,6 +86,31 @@ def run_all(config_dir: Path):
         click.echo()
 
     click.echo(f"All backtests completed! Processed {len(config_files)} config(s).")
+
+
+@cli.command()
+@click.option(
+    "--config-path",
+    type=click.Path(exists=True, path_type=Path),
+    default="mve_backtest_cfg.yml",
+)
+def run_mve_backtest(config_path: Path):
+    """
+    Run a MVE backtest using the specified config file.
+
+    CONFIG_PATH: Path to the YAML configuration file
+
+    Example:
+        python -m research run mve_backtest_cfg.yml
+        python -m research run configs/quantile/mom/mom-select-sample-zero-beta.yml
+    """
+    click.echo(f"Loading config from: {config_path}")
+    config = load_mve_backtest_config(str(config_path))
+
+    click.echo(f"Starting backtest: {config.name}")
+    mve_backtest(config)
+
+    click.echo(f"Backtest completed! Results saved to: {config.output_path}")
 
 
 if __name__ == "__main__":

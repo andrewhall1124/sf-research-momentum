@@ -1,17 +1,18 @@
-from models import Signal, Config
 import polars as pl
 
+from research.models import Signal
 
-def momentum() -> Signal:
+
+def momentum(id_col: str) -> Signal:
     return Signal(
         name=momentum.__name__,
         expr=pl.col("return")
         .log1p()
         .rolling_sum(window_size=230)
         .shift(22)
-        .over("permno")
+        .over(id_col)
         .alias(momentum.__name__),
-        columns=["permno", "return"],
+        columns=[id_col, "return"],
         lookback_days=252,
     )
 
@@ -51,6 +52,7 @@ def idio_mom_vol_scaled_ff3() -> Signal:
         lookback_days=252,
     )
 
+
 def idio_mom_ff3() -> Signal:
     residual = (
         pl.col("return")
@@ -86,10 +88,10 @@ def idio_mom_ff3() -> Signal:
     )
 
 
-def get_signal(name: str) -> Signal:
+def get_signal(name: str, id_col: str) -> Signal:
     match name:
         case "momentum":
-            return momentum()
+            return momentum(id_col)
         case "idio_mom_vol_scaled_ff3":
             return idio_mom_vol_scaled_ff3()
         case "idio_mom_ff3":
@@ -98,5 +100,6 @@ def get_signal(name: str) -> Signal:
             raise ValueError(f"{name} not implemented")
 
 
-def construct_signals(data: pl.DataFrame, config: Config) -> pl.DataFrame:
-    return data.sort("permno", "date").with_columns(config.signal.expr)
+def construct_signals(data: pl.DataFrame, signal: Signal) -> pl.DataFrame:
+    """Data is assumed to have already been sorted by id_col and date."""
+    return data.with_columns(signal.expr)

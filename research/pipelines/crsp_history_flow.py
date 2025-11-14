@@ -1,7 +1,8 @@
 import datetime as dt
-import sf_quant.data as sfd
 from pathlib import Path
+
 import polars as pl
+import sf_quant.data as sfd
 from tqdm import tqdm
 
 

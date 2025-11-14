@@ -1,31 +1,56 @@
+import datetime as dt
+
 import polars as pl
-from config import Config
+
+from research.models import AlphaConstructor, Constraint, Filter, Signal
 
 
-def _get_columns(config: Config) -> list[str]:
+def _get_columns(
+    signal: Signal,
+    filters: list[Filter],
+    constraints: list[Constraint],
+    alpha_constructor: AlphaConstructor,
+    id_col: str,
+) -> list[str]:
     # Get signal columns
-    signal_columns = config.signal.columns
+    signal_columns = signal.columns
 
     # Get filter columns
     filter_columns = []
-    for filter_ in config.filters:
+    for filter_ in filters:
         filter_columns.extend(filter_.columns)
 
-    # Always include 'date' and 'permno' for the forward return calculation
-    all_columns = list(set(signal_columns + filter_columns + ["date", "permno"]))
+    # Get constraint columns
+    constraint_columns = []
+    for constraint in constraints:
+        constraint_columns.extend(constraint.columns)
+
+    # Get alpha constructor columns
+    alpha_constructor_columns = alpha_constructor.columns
+
+    # Always include 'date' and id_col for the forward return calculation
+    all_columns = list(
+        set(
+            signal_columns
+            + filter_columns
+            + constraint_columns
+            + alpha_constructor_columns
+            + ["date", id_col]
+        )
+    )
 
     return all_columns
 
 
-def _get_fwd_return_expr(config: Config) -> pl.Expr:
+def _get_fwd_return_expr(rebalance_frequency: str, id_col: str) -> pl.Expr:
     holding_period = None
-    match config.rebalance_frequency:
+    match rebalance_frequency:
         case "daily":
             holding_period = 1
         case "monthly":
             holding_period = 21
         case _:
-            raise ValueError(f"{config.rebalance_frequency} is not supported!")
+            raise ValueError(f"{rebalance_frequency} is not supported!")
 
     return (
         pl.col("return")
@@ -34,42 +59,65 @@ def _get_fwd_return_expr(config: Config) -> pl.Expr:
         .exp()
         .sub(1)
         .shift(-holding_period)
-        .over("permno")
+        .over(id_col)
         .alias("fwd_return")
     )
 
 
-def load_data(config: Config) -> pl.DataFrame:
-    columns = _get_columns(config)
-
+def load_data(
+    start: dt.date,
+    end: dt.date,
+    rebalance_frequency: str,
+    datasets: list[str],
+    signal: Signal,
+    filters: list[Filter] | None = None,
+    constraints: list[Constraint] | None = None,
+    alpha_constructor: AlphaConstructor | None = None,
+) -> pl.DataFrame:
     # Create base dataframe
     data = None
-    if "crsp" in config.datasets:
+    id_col = None
+    if "crsp" in datasets:
         data = pl.scan_parquet("data/crsp/crsp_*.parquet")
+        id_col = "permno"
+
+    if "barra" in datasets:
+        data = pl.scan_parquet("data/barra/barra_*.parquet")
+        id_col = "barrid"
 
     if data is None:
         raise ValueError("No base dataset provided")
 
-    if "ff3" in config.datasets:
+    if "ff3" in datasets:
         data = data.join(
             pl.scan_parquet("data/fama_french/ff3_factors.parquet"),
             on="date",
             how="left",
         )
 
-    if "crsp_ff3_betas" in config.datasets:
+    if "crsp_ff3_betas" in datasets:
         data = data.join(
             pl.scan_parquet("data/crsp_ff3_betas/crsp_ff3_betas_*.parquet"),
             on=["date", "permno"],
             how="left",
         )
 
+    columns = _get_columns(
+        signal=signal,
+        filters=filters,
+        constraints=constraints,
+        alpha_constructor=alpha_constructor,
+        id_col=id_col,
+    )
+
     data = (
         data.select(columns)
-        .sort("permno", "date")
-        .with_columns(_get_fwd_return_expr(config=config))
-        .filter(pl.col("date").is_between(config.start, config.end))
-        .sort("permno", "date")
+        .sort(id_col, "date")
+        .with_columns(
+            _get_fwd_return_expr(rebalance_frequency=rebalance_frequency, id_col=id_col)
+        )
+        .filter(pl.col("date").is_between(start, end))
+        .sort(id_col, "date")
     )
 
     return data.collect()

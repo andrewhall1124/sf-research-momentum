@@ -1,8 +1,9 @@
+import io
 import urllib.request
 import zipfile
 from pathlib import Path
+
 import polars as pl
-import io
 
 
 def fama_french_3_factors_flow() -> None:

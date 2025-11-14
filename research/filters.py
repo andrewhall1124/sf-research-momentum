@@ -1,5 +1,6 @@
-from models import Filter, Config
 import polars as pl
+
+from research.models import Filter
 
 
 def penny_stocks() -> Filter:
@@ -77,7 +78,5 @@ def get_filter(name: str, **kwargs) -> Filter:
             raise ValueError
 
 
-def apply_filters(signals: pl.DataFrame, config: Config) -> pl.DataFrame:
-    return signals.filter([filter_.expr for filter_ in config.filters]).sort(
-        "permno", "date"
-    )
+def apply_filters(signals: pl.DataFrame, filters) -> pl.DataFrame:
+    return signals.filter([filter_.expr for filter_ in filters])
