@@ -121,21 +121,20 @@ def _submit_year_job(
 
     sbatch_script = f"""#!/bin/bash
 #SBATCH --job-name=backtest_{signal_name}_{year}
-#SBATCH --output=logs/backtest_{signal_name}_{year}.out
-#SBATCH --error=logs/backtest_{signal_name}_{year}.err
+#SBATCH --output=logs/{signal_name}/out/backtest_{signal_name}_{year}.out
+#SBATCH --error=logs/{signal_name}/err/backtest_{signal_name}_{year}.err
 #SBATCH --cpus-per-task={n_cpus}
 #SBATCH --mem=20G
 #SBATCH --time=02:00:00
 #SBATCH --mail-user=amh1124@byu.edu
 #SBATCH --mail-type=BEGIN,END,FAIL
 
-source ../.venv/bin/activate
+source .venv/bin/activate
 echo "Running signal={signal_name} for {year}"
 srun python -m research run-single-year-mve-backtest \\
     --config-path "{config_path}" \\
     --signal-name "{signal_name}" \\
     --year {year} \\
-    --n-cpus {n_cpus} \\
     --alphas-path "{dataset_path}" \\
     --output-path "{output_path}"
 """
@@ -187,24 +186,6 @@ def mve_backtest_parallel(config: MVEBacktestConfig):
 
     for year in years:
         _submit_year_job(signal_name=config.signal.name, year=year)
-
-    # # Read all weights into a single dataframe using polars.
-    # print("Constructing returns...")
-    # returns = construct_returns_from_weights(
-    #     weights=weights, rebalance_frequency=config.rebalance_frequency
-    # )
-
-    # print("Saving results...")
-    # create_mve_summary_table(
-    #     returns=returns,
-    #     file_path=output_path,
-    #     annualize_results=config.annualize_results,
-    #     rebalance_frequency=config.rebalance_frequency,
-    #     name=config.name,
-    #     start=config.start,
-    #     end=config.end,
-    # )
-    # create_mve_returns_chart(returns=returns, name=config.name, file_path=output_path)
 
 
 def single_year_backtest(

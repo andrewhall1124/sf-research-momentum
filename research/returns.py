@@ -47,16 +47,16 @@ def construct_returns(
 def construct_returns_from_weights(
     weights: pl.DataFrame, rebalance_frequency: str
 ) -> pl.DataFrame:
-    holding_period = None
-    match rebalance_frequency:
-        case "daily":
-            holding_period = 1
-        case "monthly":
-            holding_period = 21
-        case _:
-            raise ValueError(
-                f"Rebalance frequency not implemented: {rebalance_frequency}"
-            )
+    holding_period = 1 # TODO: Use the paradigm that weights are already in the correct frequency.
+    # match rebalance_frequency:
+    #     case "daily":
+    #         holding_period = 1
+    #     case "monthly":
+    #         holding_period = 21
+    #     case _:
+    #         raise ValueError(
+    #             f"Rebalance frequency not implemented: {rebalance_frequency}"
+    #         )
 
     forward_returns = (
         pl.scan_parquet("data/barra/barra_*.parquet")
