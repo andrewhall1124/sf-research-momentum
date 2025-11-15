@@ -142,12 +142,6 @@ def run_mve_backtest(config_path: Path, parallel: bool):
     help="Year to run the backtest for",
 )
 @click.option(
-    "--n-cpus",
-    type=int,
-    default=1,
-    help="Number of CPUs to use for parallel processing",
-)
-@click.option(
     "--alphas-path",
     type=click.Path(path_type=Path),
     required=True,
@@ -163,7 +157,6 @@ def run_single_year_mve_backtest(
     config_path: Path,
     signal_name: str,
     year: int,
-    n_cpus: int,
     alphas_path: Path,
     output_path: Path,
 ):
@@ -176,9 +169,9 @@ def run_single_year_mve_backtest(
     weights = single_year_backtest(
         gamma=config.gamma,
         year=year,
-        n_cpus=n_cpus,
         alphas_path=alphas_path,
         constraints=constraints,
+        rebalance_frequency=config.rebalance_frequency
     )
 
     if weights is not None:

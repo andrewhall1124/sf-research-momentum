@@ -121,8 +121,8 @@ def _submit_year_job(
 
     sbatch_script = f"""#!/bin/bash
 #SBATCH --job-name=backtest_{signal_name}_{year}
-#SBATCH --output=logs/backtest_{signal_name}_{year}_%j.out
-#SBATCH --error=logs/backtest_{signal_name}_{year}_%j.err
+#SBATCH --output=logs/backtest_{signal_name}_{year}.out
+#SBATCH --error=logs/backtest_{signal_name}_{year}.err
 #SBATCH --cpus-per-task={n_cpus}
 #SBATCH --mem=20G
 #SBATCH --time=02:00:00
@@ -183,7 +183,7 @@ def mve_backtest_parallel(config: MVEBacktestConfig):
     alphas.write_parquet("alphas.parquet")
 
     print("Constructing portfolios...")
-    years = alphas['date'].dt.year().unique().sort()
+    years = alphas['date'].dt.year().unique().sort().to_list()
 
     for year in years:
         _submit_year_job(signal_name=config.signal.name, year=year)
@@ -210,9 +210,9 @@ def mve_backtest_parallel(config: MVEBacktestConfig):
 def single_year_backtest(
     gamma: float,
     year: int,
-    n_cpus: int,
     alphas_path: Path,
     constraints: list[Constraint],
+    rebalance_frequency: str
 ):
     alphas = (
         pl.scan_parquet(alphas_path)
@@ -225,6 +225,4 @@ def single_year_backtest(
         print("[WARNING] After filtering, input df was empty.")
         return None
 
-    return sfb.backtest_parallel(
-        alphas=alphas, constraints=constraints, gamma=gamma, n_cpus=n_cpus
-    )
+    return construct_mve_portfolios(alphas=alphas, rebalance_frequency=rebalance_frequency, constraints=constraints, gamma=gamma)
