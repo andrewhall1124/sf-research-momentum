@@ -26,7 +26,7 @@ def _get_columns(
         constraint_columns.extend(constraint.columns)
 
     # Get alpha constructor columns
-    alpha_constructor_columns = alpha_constructor.columns
+    alpha_constructor_columns = alpha_constructor.columns if alpha_constructor is not None else []
 
     # Always include 'date' and id_col for the forward return calculation
     all_columns = list(
@@ -70,8 +70,8 @@ def load_data(
     rebalance_frequency: str,
     datasets: list[str],
     signal: Signal,
-    filters: list[Filter] | None = None,
-    constraints: list[Constraint] | None = None,
+    filters: list[Filter] | None = [],
+    constraints: list[Constraint] | None = [],
     alpha_constructor: AlphaConstructor | None = None,
 ) -> pl.DataFrame:
     # Create base dataframe

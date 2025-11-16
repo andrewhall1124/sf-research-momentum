@@ -31,9 +31,21 @@ def load_quantile_backtest_config(
     with open(path, "r") as f:
         raw_config = yaml.safe_load(f)
 
+    # Parse datasets
+    datasets = raw_config.get("datasets", [])
+
+    # Set id_col
+    id_col = None
+    if "crsp" in datasets:
+        id_col = "permno"
+    elif "barra" in datasets:
+        id_col = "barrid"
+    else:
+        raise RuntimeError("No base dataset included!")
+
     # Parse signal
     signal_name = raw_config.get("signal")
-    signal = get_signal(signal_name)
+    signal = get_signal(signal_name, id_col=id_col)
 
     # Parse filters
     filter_names = raw_config.get("filters", [])
@@ -46,7 +58,7 @@ def load_quantile_backtest_config(
         start=raw_config.get("start"),
         end=raw_config.get("end"),
         rebalance_frequency=raw_config.get("rebalance-frequency"),
-        datasets=raw_config.get("datasets", []),
+        datasets=datasets,
         signal=signal,
         n_bins=raw_config.get("n-bins"),
         weighting_scheme=raw_config.get("weighting-scheme"),

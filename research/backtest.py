@@ -29,7 +29,6 @@ def quantile_backtest(config: QuantileBacktestConfig):
         datasets=config.datasets,
         signal=config.signal,
         filters=config.filters,
-        constraints=None,
     )
 
     print("Constructing signals...")

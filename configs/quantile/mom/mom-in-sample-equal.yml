@@ -3,7 +3,7 @@ output-path: results/mom/quantile/in-sample/momentum-in-sample-equal
 start: 1963-07-31
 end: 2015-12-31
 rebalance-frequency: monthly
-annualize-results: false
+annualize-results: true
 
 datasets: 
 - crsp
