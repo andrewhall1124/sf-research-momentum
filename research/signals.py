@@ -17,7 +17,7 @@ def momentum(id_col: str) -> Signal:
     )
 
 
-def idio_mom_vol_scaled_ff3() -> Signal:
+def idio_mom_vol_scaled_ff3(id_col: str) -> Signal:
     residual = (
         pl.col("return")
         .sub("rf")
@@ -34,11 +34,11 @@ def idio_mom_vol_scaled_ff3() -> Signal:
             residual.rolling_sum(230)
             .truediv(residual.rolling_std(230))
             .shift(22)
-            .over("permno")
+            .over(id_col)
             .alias(idio_mom_vol_scaled_ff3.__name__)
         ),
         columns=[
-            "permno",
+            id_col,
             "return",
             "rf",
             "alpha",
@@ -53,7 +53,7 @@ def idio_mom_vol_scaled_ff3() -> Signal:
     )
 
 
-def idio_mom_ff3() -> Signal:
+def idio_mom_ff3(id_col: str) -> Signal:
     residual = (
         pl.col("return")
         .sub("rf")
@@ -69,11 +69,11 @@ def idio_mom_ff3() -> Signal:
         expr=(
             residual.rolling_sum(230)
             .shift(22)
-            .over("permno")
+            .over(id_col)
             .alias(idio_mom_ff3.__name__)
         ),
         columns=[
-            "permno",
+            id_col,
             "return",
             "rf",
             "alpha",
@@ -93,9 +93,9 @@ def get_signal(name: str, id_col: str) -> Signal:
         case "momentum":
             return momentum(id_col)
         case "idio_mom_vol_scaled_ff3":
-            return idio_mom_vol_scaled_ff3()
+            return idio_mom_vol_scaled_ff3(id_col)
         case "idio_mom_ff3":
-            return idio_mom_ff3()
+            return idio_mom_ff3(id_col)
         case _:
             raise ValueError(f"{name} not implemented")
 

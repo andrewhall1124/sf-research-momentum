@@ -1,0 +1,13 @@
+Idiosyncratic Momentum Zero Beta Backtest
+Period: 2016-01-01 to 2024-12-31
+Rebalance Frequency: monthly
+Annualized: Yes
+
+shape: (1, 4)
+┌───────────┬─────────────┬────────────┬────────┐
+│ portfolio ┆ mean_return ┆ volatility ┆ sharpe │
+│ ---       ┆ ---         ┆ ---        ┆ ---    │
+│ str       ┆ f64         ┆ f64        ┆ f64    │
+╞═══════════╪═════════════╪════════════╪════════╡
+│ total     ┆ 11.3        ┆ 34.8       ┆ 0.32   │
+└───────────┴─────────────┴────────────┴────────┘

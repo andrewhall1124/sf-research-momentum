@@ -1,12 +1,14 @@
 name: Idiosyncratic Momentum Zero Beta Backtest
-output-path: results/idio-mom/mve/select-sample/idio-mom-zero-beta
-start: 2000-01-01
+output-path: results/idio-mom-ff3/mve/out-of-sample/idio-mom-ff3-zero-beta
+start: 2016-01-01
 end: 2024-12-31
 rebalance-frequency: monthly
 annualized-results: true
 
 datasets: 
 - barra
+- ff3
+- barra_ff3_betas
 
 signal: idio_mom_ff3
 alpha-constructor: cross-sectional-z-score

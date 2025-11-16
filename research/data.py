@@ -102,6 +102,13 @@ def load_data(
             how="left",
         )
 
+    if "barra_ff3_betas" in datasets:
+        data = data.join(
+            pl.scan_parquet("data/barra_ff3_betas/barra_ff3_betas_*.parquet"),
+            on=["date", "barrid"],
+            how="left",
+        )
+
     columns = _get_columns(
         signal=signal,
         filters=filters,

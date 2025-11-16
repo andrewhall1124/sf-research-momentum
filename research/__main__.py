@@ -6,10 +6,20 @@ from pathlib import Path
 import click
 import polars as pl
 
-from research.backtest import mve_backtest, mve_backtest_parallel, quantile_backtest, single_year_backtest
+from research.data import load_data
+from research.signals import construct_signals
+from research.alpha_constructors import construct_alphas
+from research.filters import apply_filters
+from research.backtest import (
+    mve_backtest,
+    mve_backtest_parallel,
+    quantile_backtest,
+    single_year_backtest,
+)
 from research.config import load_mve_backtest_config, load_quantile_backtest_config
 from research.returns import construct_returns_from_weights
 from research.evaluations import create_mve_returns_chart, create_mve_summary_table
+
 
 @click.group()
 def cli():
@@ -171,13 +181,15 @@ def run_single_year_mve_backtest(
         year=year,
         alphas_path=alphas_path,
         constraints=config.constraints,
-        rebalance_frequency=config.rebalance_frequency
+        rebalance_frequency=config.rebalance_frequency,
     )
 
     if weights is not None:
         weights.write_parquet(output_path.with_suffix(".parquet"))
     else:
-        click.echo(f"No weights generated for {signal_name} {year} - alphas may be empty")
+        click.echo(
+            f"No weights generated for {signal_name} {year} - alphas may be empty"
+        )
 
 
 @cli.command()
@@ -188,21 +200,25 @@ def run_single_year_mve_backtest(
 )
 def generate_results_from_weights(config_path: Path) -> None:
     config = load_mve_backtest_config(config_path)
+    output_path = Path(config.output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
 
     signal_name = config.signal.name
 
     weights_path = f"weights/{signal_name}/{signal_name}_*.parquet"
 
-    weights = pl.read_parquet(weights_path).sort('barrid', 'date')
-    print(weights.sort('date'))
+    weights = (
+        pl.read_parquet(weights_path)
+        .filter(pl.col("date").is_between(config.start, config.end))
+        .sort("barrid", "date")
+    )
 
-    print("Constructing returns...")
+    click.echo("Constructing returns...")
     returns = construct_returns_from_weights(
         weights=weights, rebalance_frequency=config.rebalance_frequency
     )
-    print(returns)
 
-    print("Saving results...")
+    click.echo("Saving results...")
     create_mve_summary_table(
         returns=returns,
         file_path=config.output_path,
@@ -212,7 +228,43 @@ def generate_results_from_weights(config_path: Path) -> None:
         start=config.start,
         end=config.end,
     )
-    create_mve_returns_chart(returns=returns, name=config.name, file_path=config.output_path)
+    create_mve_returns_chart(
+        returns=returns, name=config.name, file_path=config.output_path
+    )
+
+
+@cli.command()
+@click.option(
+    "--config-path",
+    type=click.Path(exists=True, path_type=Path),
+    default="mve_backtest_cfg.yml",
+)
+def generate_alphas(config_path: Path) -> None:
+    config = load_mve_backtest_config(config_path)
+
+    click.echo("Loading data...")
+    data = load_data(
+        start=config.start,
+        end=config.end,
+        rebalance_frequency=config.rebalance_frequency,
+        datasets=config.datasets,
+        signal=config.signal,
+        filters=config.filters,
+        constraints=config.constraints,
+        alpha_constructor=config.alpha_constructor,
+    )
+
+    click.echo("Constructing signals...")
+    signals = construct_signals(data=data, signal=config.signal)
+
+    click.echo("Applying filters...")
+    filtered = apply_filters(signals=signals, filters=config.filters)
+
+    click.echo("Constructing alphas...")
+    alphas = construct_alphas(
+        signals=filtered, alpha_constructor=config.alpha_constructor
+    )
+    print(alphas.select("date", "barrid", "alpha"))
 
 
 if __name__ == "__main__":

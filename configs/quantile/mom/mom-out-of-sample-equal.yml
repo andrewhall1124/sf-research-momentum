@@ -1,5 +1,5 @@
 name: Momentum Equal Weight Decile Backtest
-output-path: results/mom/out-of-sample/momentum-out-of-sample-equal
+output-path: results/mom/quantile/out-of-sample/momentum-out-of-sample-equal
 start: 2016-01-01
 end: 2024-12-31
 rebalance-frequency: monthly

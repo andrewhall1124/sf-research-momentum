@@ -1,5 +1,5 @@
 name: Idiosyncratic Momentum Vol Scaled FF3 Equal Weight Decile Backtest
-output-path: results/idio-mom-vol-scaled-ff3/out-of-sample/idio-mom-vol-scaled-ff3-out-of-sample-equal
+output-path: results/idio-mom-vol-scaled-ff3/quantile/out-of-sample/idio-mom-vol-scaled-ff3-out-of-sample-equal
 start: 2016-01-01
 end: 2024-12-31
 rebalance-frequency: monthly
