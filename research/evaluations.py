@@ -6,6 +6,7 @@ import numpy as np
 import polars as pl
 import seaborn as sns
 import statsmodels.formula.api as smf
+import great_tables as gt
 
 from research.models import QuantileBacktestConfig
 
@@ -129,7 +130,7 @@ def create_quantile_returns_chart(
     plt.ylabel("Cumulative Log Return (%)")
     plt.legend(loc="best")
 
-    output_file = Path(file_path).with_suffix(".png")
+    output_file = Path(file_path).with_suffix("_chart.png")
     plt.savefig(output_file, dpi=300)
 
 
@@ -141,7 +142,7 @@ def create_mve_summary_table(
     name: str,
     start: dt.date,
     end: dt.date,
-) -> pl.DataFrame:
+) -> None:
     annual_factor = 1
     if annualize_results:
         match rebalance_frequency:
@@ -163,23 +164,43 @@ def create_mve_summary_table(
         )
         .with_columns(pl.col("mean_return").truediv("volatility").alias("sharpe"))
         .with_columns(pl.exclude("portfolio").round(2))
+        .with_columns(pl.col("portfolio").str.to_titlecase())
     )
 
     # Save the DataFrame as a string to the file
-    output_file = (
-        file_path.with_suffix(".txt")
-        if isinstance(file_path, Path)
-        else Path(file_path).with_suffix(".txt")
+    output_file = Path(file_path + "_table").with_suffix(".png")
+
+    table = (
+        gt.GT(summary_table)
+        .tab_header(title=name)
+        .fmt_number(
+            columns=[
+                "mean_return",
+                "volatility",
+                "sharpe",
+            ],
+            decimals=2,
+        )
+        .cols_label(
+            portfolio="Portfolio",
+            mean_return="Mean Return",
+            volatility="Volatility",
+            sharpe="Sharpe",
+        )
+        .opt_stylize(style=5, color="gray")
+        .tab_options(
+            table_width="500px",
+            container_height="auto",
+            container_overflow_y="visible"
+        )        
+        .tab_source_note(source_note=f"Period: {start} to {end}")
+        .tab_source_note(source_note=f"Rebalance Frequency: {rebalance_frequency.title()}")
+        .tab_source_note(
+            source_note=f"Annualized: {'Yes' if annualize_results else 'No'}"
+        )
     )
-    with open(output_file, "w") as f:
-        f.write(f"{name}\n")
-        f.write(f"Period: {start} to {end}\n")
-        f.write(f"Rebalance Frequency: {rebalance_frequency}\n")
-        f.write(f"Annualized: {'Yes' if annualize_results else 'No'}\n\n")
-        f.write(str(summary_table))
 
-    return summary_table
-
+    table.save(output_file)
 
 def create_mve_returns_chart(returns: pl.DataFrame, name: str, file_path: Path) -> None:
     cumulative_returns = returns.sort("date").with_columns(
@@ -198,5 +219,5 @@ def create_mve_returns_chart(returns: pl.DataFrame, name: str, file_path: Path) 
     plt.xlabel(None)
     plt.ylabel("Cumulative Log Return (%)")
 
-    output_file = Path(file_path).with_suffix(".png")
+    output_file = Path(file_path + "_chart").with_suffix(".png")
     plt.savefig(output_file, dpi=300)

@@ -1,5 +1,5 @@
 name: Momentum Zero Beta Backtest
-output-path: results/mom/mve/select-sample/mom-zero-beta
+output-path: results/mom/mve/out-of-sample/mom-zero-beta
 start: 2016-01-01
 end: 2024-12-31
 rebalance-frequency: monthly
