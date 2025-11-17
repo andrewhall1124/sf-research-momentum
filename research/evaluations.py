@@ -8,29 +8,34 @@ import seaborn as sns
 import statsmodels.formula.api as smf
 import great_tables as gt
 
-from research.models import QuantileBacktestConfig
-
 pl.Config.set_tbl_rows(n=11)
 pl.Config.set_tbl_cols(n=10)
 
 
 def create_quantile_summary_table(
-    returns: pl.DataFrame, config: QuantileBacktestConfig, file_path: Path
+    returns: pl.DataFrame,
+    file_path: str,
+    annualize_results: bool,
+    rebalance_frequency: str,
+    n_bins: int,
+    start: dt.date,
+    end: dt.date,
+    title: str,
 ) -> pl.DataFrame:
     factors = pl.read_parquet("data/fama_french/ff5_factors.parquet")
 
     annual_factor = 1
 
-    if config.annualize_results:
-        match config.rebalance_frequency:
+    if annualize_results:
+        match rebalance_frequency:
             case "daily":
                 annual_factor = 252
             case "monthly":
                 annual_factor = 12
             case _:
-                raise ValueError(f"{config.rebalance_frequency} is not supported!")
+                raise ValueError(f"{rebalance_frequency} is not supported!")
 
-    bins = [str(i) for i in range(config.n_bins)] + ["spread"]
+    bins = [str(i) for i in range(n_bins)] + ["spread"]
     merged = (
         returns.unpivot(index="date", variable_name="bin", value_name="return")
         .join(other=factors, on="date", how="left")
@@ -44,7 +49,7 @@ def create_quantile_summary_table(
         {"name": "5FM", "formula": "return_rf ~ mkt_rf + smb + hml + rmw + cma"},
     ]
 
-    bins = [str(i) for i in range(config.n_bins)] + ["spread"]
+    bins = [str(i) for i in range(n_bins)] + ["spread"]
 
     # Run regressions for each model and bin
     regression_results_list = []
@@ -79,25 +84,61 @@ def create_quantile_summary_table(
         .join(other=regression_results, on="bin", how="left")
         .with_columns(pl.exclude("bin").round(2))
         .sort("bin")
+        .with_columns(
+            pl.col('bin').replace({
+                '0': 'D1',
+                '1': 'D2',
+                '2': 'D3',
+                '3': 'D4',
+                '4': 'D5',
+                '5': 'D6',
+                '6': 'D7',
+                '7': 'D8',
+                '8': 'D9',
+                '9': 'D10',
+                'spread': 'Spread'
+            })
+        )
+        .rename({
+            'bin': 'Portfolio',
+            'excess_return': 'Excess Return',
+            'volatility': 'Volatility',
+            'sharpe': 'Sharpe',
+            'CAPM_alpha': 'CAPM Alpha',
+            'CAPM_tstat': 'CAPM T-stat',
+            '3FM_alpha': '3FM Alpha',
+            '3FM_tstat': '3FM T-stat',
+            '5FM_alpha': '5FM Alpha',
+            '5FM_tstat': '5FM T-stat'
+        })
     )
 
     # Save the DataFrame as a string to the file
-    output_file = (
-        file_path.with_suffix(".txt")
-        if isinstance(file_path, Path)
-        else Path(file_path).with_suffix(".txt")
+    output_file = Path(file_path + "_table").with_suffix(".png")
+
+
+    table = (
+        gt.GT(summary_table)
+        .tab_header(title=title)
+        .opt_stylize(style=5, color="gray")
+        .tab_source_note(source_note=f"Period: {start} to {end}")
+        .tab_source_note(
+            source_note=f"Rebalance Frequency: {rebalance_frequency.title()}"
+        )
+        .tab_source_note(
+            source_note=f"Annualized: {'Yes' if annualize_results else 'No'}"
+        )
+        .tab_options(source_notes_padding=gt.px(10))  # Add padding
+
     )
-    with open(output_file, "w") as f:
-        f.write(f"{config.name}\n")
-        f.write(f"Period: {config.start} to {config.end}\n")
-        f.write(f"Annualized: {'Yes' if config.annualize_results else 'No'}\n\n")
-        f.write(str(summary_table))
+
+    table.save(output_file)
 
     return summary_table
 
 
 def create_quantile_returns_chart(
-    returns: pl.DataFrame, config: QuantileBacktestConfig, file_path: str
+    returns: pl.DataFrame, n_bins: int, title: str, file_path: str
 ) -> None:
     df_cumulative_returns = returns.sort("date").with_columns(
         pl.exclude("date").log1p().cum_sum()
@@ -105,8 +146,8 @@ def create_quantile_returns_chart(
 
     plt.figure(figsize=(10, 6))
 
-    labels = [str(i) for i in range(config.n_bins)]
-    colors = sns.color_palette(palette="coolwarm", n_colors=config.n_bins)
+    labels = [str(i) for i in range(n_bins)]
+    colors = sns.color_palette(palette="coolwarm", n_colors=n_bins)
 
     for i, (label, color) in enumerate(zip(labels, colors)):
         sns.lineplot(
@@ -125,12 +166,13 @@ def create_quantile_returns_chart(
         label="Spread (D10-D1)",
     )
 
-    plt.title(config.name)
+    plt.title(title)
     plt.xlabel(None)
     plt.ylabel("Cumulative Log Return (%)")
     plt.legend(loc="best")
 
-    output_file = Path(file_path).with_suffix("_chart.png")
+    output_file = Path(file_path + "_chart").with_suffix(".png")
+    output_file.parent.mkdir(parents=True, exist_ok=True)
     plt.savefig(output_file, dpi=300)
 
 
@@ -189,18 +231,19 @@ def create_mve_summary_table(
         )
         .opt_stylize(style=5, color="gray")
         .tab_options(
-            table_width="500px",
-            container_height="auto",
-            container_overflow_y="visible"
-        )        
+            table_width="500px", container_height="auto", container_overflow_y="visible"
+        )
         .tab_source_note(source_note=f"Period: {start} to {end}")
-        .tab_source_note(source_note=f"Rebalance Frequency: {rebalance_frequency.title()}")
+        .tab_source_note(
+            source_note=f"Rebalance Frequency: {rebalance_frequency.title()}"
+        )
         .tab_source_note(
             source_note=f"Annualized: {'Yes' if annualize_results else 'No'}"
         )
     )
 
     table.save(output_file)
+
 
 def create_mve_returns_chart(returns: pl.DataFrame, name: str, file_path: Path) -> None:
     cumulative_returns = returns.sort("date").with_columns(

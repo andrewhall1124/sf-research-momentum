@@ -1,27 +1,27 @@
 import polars as pl
 import sf_quant.backtester as sfb
 
-from research.models import Constraint, QuantileBacktestConfig
+from research.models import Constraint, Signal
 
 
 def construct_quantile_portfolios(
-    data: pl.DataFrame, config: QuantileBacktestConfig
+    data: pl.DataFrame, n_bins: int, signal: Signal, weighting_scheme: str
 ) -> pl.DataFrame:
-    labels = [str(i) for i in range(config.n_bins)]
+    labels = [str(i) for i in range(n_bins)]
     portfolios = data.with_columns(
-        pl.col(config.signal.name)
-        .qcut(quantiles=config.n_bins, labels=labels)
+        pl.col(signal.name)
+        .qcut(quantiles=n_bins, labels=labels)
         .cast(pl.String)
         .over("date")
         .alias("bin")
     )
 
-    if config.weighting_scheme == "equal":
+    if weighting_scheme == "equal":
         return portfolios.with_columns(
             pl.lit(1).truediv(pl.len()).over("bin", "date").alias("weight")
         )
 
-    elif config.weighting_scheme == "market_cap":
+    elif weighting_scheme == "market_cap":
         return portfolios.with_columns(
             pl.col("market_cap")
             .truediv(pl.col("market_cap").sum())
@@ -30,7 +30,7 @@ def construct_quantile_portfolios(
         )
 
     else:
-        raise ValueError(f"{config.weighting_scheme} not supported!")
+        raise ValueError(f"{weighting_scheme} not supported!")
 
 
 def construct_mve_portfolios(

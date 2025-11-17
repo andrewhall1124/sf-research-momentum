@@ -1,15 +1,50 @@
 import polars as pl
-import sf_quant.data as sfd
-
-from research.models import QuantileBacktestConfig
-
 
 def construct_returns(
-    data: pl.DataFrame, config: QuantileBacktestConfig
+    data: pl.DataFrame, n_bins: int, rebalance_frequency: str
 ) -> pl.DataFrame:
-    labels = [str(i) for i in range(config.n_bins)]
+    labels = [str(i) for i in range(n_bins)]
     top_bin, bottom_bin = labels[-1], labels[0]
-    if config.rebalance_frequency == "daily":
+
+    holding_period = 1 # TODO: Is this always 1?
+    match rebalance_frequency:
+        case "daily":
+            holding_period = 1
+        case "monthly":
+            holding_period = 21
+        case _:
+            raise ValueError(
+                f"Rebalance frequency not implemented: {rebalance_frequency}"
+            )
+
+    forward_returns = (
+        pl.scan_parquet("data/crsp/crsp_*.parquet")
+        .sort("permno", "date")
+        .select(
+            "date",
+            "permno",
+            pl.col("return")
+            .log1p()
+            .rolling_sum(window_size=holding_period)
+            .shift(-holding_period)
+            .exp()
+            .sub(1)
+            .alias("fwd_return"),
+        )
+    )
+
+    data = (
+        data.lazy()
+        .join(
+            other=forward_returns,
+            on=['date', 'permno'],
+            how='left'
+        )
+        .collect()
+    )
+
+
+    if rebalance_frequency == "daily":
         result = (
             data.group_by("date", "bin")
             .agg(pl.col("fwd_return").mul("weight").sum().alias("return"))
@@ -18,7 +53,7 @@ def construct_returns(
             .sort("date")
         )
 
-    elif config.rebalance_frequency == "monthly":
+    elif rebalance_frequency == "monthly":
         year_months = (
             data.with_columns(pl.col("date").dt.strftime("%Y%m").alias("year_month"))
             .group_by("year_month")
@@ -38,7 +73,7 @@ def construct_returns(
         )
     else:
         raise ValueError(
-            f"Unsupported rebalance frequency: {config.rebalance_frequency}. Supported values are 'daily' or 'monthly'."
+            f"Unsupported rebalance frequency: {rebalance_frequency}. Supported values are 'daily' or 'monthly'."
         )
 
     return result
@@ -48,15 +83,15 @@ def construct_returns_from_weights(
     weights: pl.DataFrame, rebalance_frequency: str
 ) -> pl.DataFrame:
     holding_period = 1 # TODO: Use the paradigm that weights are already in the correct frequency.
-    # match rebalance_frequency:
-    #     case "daily":
-    #         holding_period = 1
-    #     case "monthly":
-    #         holding_period = 21
-    #     case _:
-    #         raise ValueError(
-    #             f"Rebalance frequency not implemented: {rebalance_frequency}"
-    #         )
+    match rebalance_frequency:
+        case "daily":
+            holding_period = 1
+        case "monthly":
+            holding_period = 21
+        case _:
+            raise ValueError(
+                f"Rebalance frequency not implemented: {rebalance_frequency}"
+            )
 
     forward_returns = (
         pl.scan_parquet("data/barra/barra_*.parquet")

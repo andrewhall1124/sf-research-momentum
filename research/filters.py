@@ -78,5 +78,5 @@ def get_filter(name: str, **kwargs) -> Filter:
             raise ValueError
 
 
-def apply_filters(signals: pl.DataFrame, filters) -> pl.DataFrame:
+def apply_filters(signals: pl.DataFrame, filters: list[Filter]) -> pl.DataFrame:
     return signals.filter([filter_.expr for filter_ in filters])

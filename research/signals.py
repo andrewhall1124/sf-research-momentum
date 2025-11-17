@@ -5,13 +5,13 @@ from research.models import Signal
 
 def momentum(id_col: str) -> Signal:
     return Signal(
-        name=momentum.__name__,
+        name="momentum",
         expr=pl.col("return")
         .log1p()
         .rolling_sum(window_size=230)
         .shift(22)
         .over(id_col)
-        .alias(momentum.__name__),
+        .alias("momentum"),
         columns=[id_col, "return"],
         lookback_days=252,
     )
@@ -29,13 +29,13 @@ def idio_mom_vol_scaled_ff3(id_col: str) -> Signal:
     )
 
     return Signal(
-        name=idio_mom_vol_scaled_ff3.__name__,
+        name="volatility_scaled_idiosyncratic_momentum_fama_french_3",
         expr=(
             residual.rolling_sum(230)
             .truediv(residual.rolling_std(230))
             .shift(22)
             .over(id_col)
-            .alias(idio_mom_vol_scaled_ff3.__name__)
+            .alias("volatility_scaled_idiosyncratic_momentum_fama_french_3")
         ),
         columns=[
             id_col,
@@ -65,12 +65,12 @@ def idio_mom_ff3(id_col: str) -> Signal:
     )
 
     return Signal(
-        name=idio_mom_ff3.__name__,
+        name="idiosyncratic_momentum_fama_french_3",
         expr=(
             residual.rolling_sum(230)
             .shift(22)
             .over(id_col)
-            .alias(idio_mom_ff3.__name__)
+            .alias("idiosyncratic_momentum_fama_french_3")
         ),
         columns=[
             id_col,
@@ -92,9 +92,9 @@ def get_signal(name: str, id_col: str) -> Signal:
     match name:
         case "momentum":
             return momentum(id_col)
-        case "idio_mom_vol_scaled_ff3":
+        case "volatility_scaled_idiosyncratic_momentum_fama_french_3":
             return idio_mom_vol_scaled_ff3(id_col)
-        case "idio_mom_ff3":
+        case "idiosyncratic_momentum_fama_french_3":
             return idio_mom_ff3(id_col)
         case _:
             raise ValueError(f"{name} not implemented")
