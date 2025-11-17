@@ -2,7 +2,7 @@ name: Idiosyncratic Momentum Zero Beta Backtest
 output-path: results/idio-mom-ff3/mve/out-of-sample/idio-mom-ff3-zero-beta
 start: 2016-01-01
 end: 2024-12-31
-rebalance-frequency: monthly
+rebalance-frequency: daily
 annualized-results: true
 
 datasets: 
@@ -10,7 +10,7 @@ datasets:
 - ff3
 - barra_ff3_betas
 
-signal: idio_mom_ff3
+signal: idiosyncratic_momentum_fama_french_3
 alpha-constructor: cross-sectional-z-score
 gamma: 2
 

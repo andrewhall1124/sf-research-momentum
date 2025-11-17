@@ -110,7 +110,6 @@ def mve_backtest(config: MVEBacktestConfig):
 def _submit_year_job(
     signal_name: str,
     year: int,
-    dataset_path: str = "alphas.parquet",
     config_path: str = "mve_backtest_cfg.yml",
     n_cpus: int = 8,
 ):
@@ -134,7 +133,7 @@ srun python -m research run-single-year-mve-backtest \\
     --config-path "{config_path}" \\
     --signal-name "{signal_name}" \\
     --year {year} \\
-    --alphas-path "{dataset_path}" \\
+    --alphas-path "{signal_name}.parquet" \\
     --output-path "{output_path}"
 """
 
@@ -178,7 +177,7 @@ def mve_backtest_parallel(config: MVEBacktestConfig):
     )
 
     print("Saving alphas temporarily...")
-    alphas.write_parquet("alphas.parquet")
+    alphas.write_parquet(f"{config.signal.name}.parquet")
 
     print("Constructing portfolios...")
     years = alphas['date'].dt.year().unique().sort().to_list()

@@ -16,3 +16,4 @@ data
 *.parquet
 logs
 *.out
+core.*
