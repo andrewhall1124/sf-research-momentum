@@ -14,7 +14,7 @@ annualize_results = True
 signal_names = [
     "momentum",
     # "idiosyncratic_momentum_fama_french_3",
-    # "volatility_scaled_idiosyncratic_momentum_fama_french_3",
+    "volatility_scaled_idiosyncratic_momentum_fama_french_3",
 ]
 
 start = end = None
@@ -61,7 +61,7 @@ for signal_name in signal_names:
 
 print("Combining results...")
 all_returns = pl.concat(returns_list)
-
+print(all_returns)
 annual_factor = 1
 match rebalance_frequency:
     case "monthly":
@@ -118,6 +118,7 @@ cumulative_returns = (
     .with_columns(pl.col("return").log1p().cum_sum().mul(100).over("signal"))
     .rename({"date": "Date", "return": "Return", "signal": "Signal"})
 )
+print(cumulative_returns)
 
 plt.figure(figsize=(10, 6))
 
