@@ -7,26 +7,17 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 sample = "out-of-sample"
-start = end = None
-rebalance_frequency = "monthly"
+# sample = "select-sample"
+rebalance_frequency = "daily"
 annualize_results = True
 
 signal_names = [
     "momentum",
-    "idiosyncratic_momentum_fama_french_3",
-    "volatility_scaled_idiosyncratic_momentum_fama_french_3",
+    # "idiosyncratic_momentum_fama_french_3",
+    # "volatility_scaled_idiosyncratic_momentum_fama_french_3",
 ]
 
-weights_name_map = {
-    "momentum": "momentum",
-    "idiosyncratic_momentum_fama_french_3": "idio_mom_ff3",
-    "volatility_scaled_idiosyncratic_momentum_fama_french_3": "idio_mom_vol_scaled_ff3",
-}
-
-filter_names = ["low-price-stocks"]
-
-alpha_constructor_name = "cross_sectional_z_score"
-
+start = end = None
 match sample:
     case "in-sample":
         start = dt.date(1963, 7, 31)
@@ -34,22 +25,33 @@ match sample:
     case "out-of-sample":
         start = dt.date(2016, 1, 1)
         end = dt.date(2024, 12, 31)
+    case "select-sample":
+        start = dt.date(2000, 1, 1)
+        end = dt.date(2024, 12, 31)
     case _:
         raise ValueError(f"Sample not supported: {sample}")
 
 returns_list = []
 for signal_name in signal_names:
-    signal_weights_name = weights_name_map[signal_name]
-    weights = (
-        pl.scan_parquet(
-            f"weights/{signal_weights_name}/{signal_weights_name}_*.parquet"
-        )
-        .filter(pl.col("date").is_between(start, end))
-        .with_columns(
-            pl.col('weight').truediv(pl.col('weight').abs().sum()).over('date') # unit leverage
-        )
-        .collect()
-    )
+    base_scan = pl.scan_parquet(f"weights/{signal_name}/{signal_name}_*.parquet")
+    
+    match rebalance_frequency:
+        case 'daily':
+            weights = base_scan
+        
+        case 'monthly':
+            month_end_dates = (
+                base_scan
+                .with_columns(
+                    pl.col('date').dt.strftime("%Y%m").alias('year_month')
+                )
+                .group_by('year_month')
+                .agg(pl.col('date').max())
+                .select('date')
+            )
+            weights = base_scan.join(month_end_dates, on=['date'], how='inner')
+    
+    weights = weights.filter(pl.col("date").is_between(start, end)).collect()
 
     returns = construct_returns_from_weights(
         weights=weights, rebalance_frequency=rebalance_frequency
@@ -64,6 +66,8 @@ annual_factor = 1
 match rebalance_frequency:
     case "monthly":
         annual_factor = 12
+    case "daily":
+        annual_factor = 252
     case _:
         raise ValueError(f"Rebalance frequency not implemented: {rebalance_frequency}")
 

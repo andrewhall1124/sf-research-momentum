@@ -129,7 +129,7 @@ def _submit_year_job(
 
 source .venv/bin/activate
 echo "Running signal={signal_name} for {year}"
-srun python -m research run-single-year-mve-backtest \\
+python -m research run-single-year-mve-backtest \\
     --config-path "{config_path}" \\
     --signal-name "{signal_name}" \\
     --year {year} \\

@@ -102,7 +102,7 @@ def construct_returns_from_weights(
             "barrid",
             pl.col("return")
             .log1p()
-            .rolling_sum(window_size=holding_period) # TODO: Check that min_samples=1 makes sense
+            .rolling_sum(window_size=holding_period)
             .shift(-holding_period)
             .exp()
             .sub(1)
