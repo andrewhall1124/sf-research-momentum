@@ -29,6 +29,7 @@ def construct_returns(
             .shift(-holding_period)
             .exp()
             .sub(1)
+            .over('permno')
             .alias("fwd_return"),
         )
     )
@@ -82,7 +83,7 @@ def construct_returns(
 def construct_returns_from_weights(
     weights: pl.DataFrame, rebalance_frequency: str
 ) -> pl.DataFrame:
-    holding_period = 1 # TODO: Use the paradigm that weights are already in the correct frequency.
+    holding_period = None
     match rebalance_frequency:
         case "daily":
             holding_period = 1
@@ -101,10 +102,11 @@ def construct_returns_from_weights(
             "barrid",
             pl.col("return")
             .log1p()
-            .rolling_sum(window_size=holding_period)
+            .rolling_sum(window_size=holding_period) # TODO: Check that min_samples=1 makes sense
             .shift(-holding_period)
             .exp()
             .sub(1)
+            .over('barrid')
             .alias("fwd_return"),
         )
     )
@@ -117,20 +119,4 @@ def construct_returns_from_weights(
         .collect()
     )
 
-    if rebalance_frequency == "daily":
-        return returns
-
-    elif rebalance_frequency == "monthly":
-        month_end_dates = (
-            returns.with_columns(pl.col("date").dt.strftime("%Y%m").alias("year_month"))
-            .group_by("year_month")
-            .agg(pl.col("date").max())["date"]
-            .unique()
-            .sort()
-            .to_list()
-        )
-
-        return returns.filter(pl.col("date").is_in(month_end_dates)).sort("date")
-
-    else:
-        raise ValueError(f"Rebalance frequency not implemented: {rebalance_frequency}")
+    return returns

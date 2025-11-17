@@ -112,6 +112,7 @@ summary_table = (
 
 title = "Momentum Variations"
 file_path = "results/experiment_2/combined"
+Path(file_path).parent.mkdir(parents=True, exist_ok=True)
 
 table = (
     gt.GT(summary_table)

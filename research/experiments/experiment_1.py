@@ -8,6 +8,7 @@ from research.evaluations import (
     create_quantile_summary_table,
     create_quantile_returns_chart,
 )
+from pathlib import Path
 
 sample = "in-sample"
 start = end = None
@@ -69,6 +70,7 @@ for signal_name in signal_names:
 
     title = signal.name.replace("_", " ").title()
     file_path = "results/experiment_1/" + signal_name + "-" + sample
+    Path(file_path).parent.mkdir(parents=True, exist_ok=True)
 
     print("Saving results...")
     create_quantile_returns_chart(
