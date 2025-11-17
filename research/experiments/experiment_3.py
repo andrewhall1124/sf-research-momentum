@@ -80,6 +80,7 @@ summary_table = (
     .with_columns(pl.col("mean_return").truediv("volatility").alias("sharpe"))
     .with_columns(pl.exclude("signal").round(2))
     .with_columns(pl.col("signal").str.replace_all("_", " ").str.to_titlecase())
+    .sort('signal')
     .rename(
         {
             "signal": "Signal",
