@@ -1,9 +1,5 @@
 import polars as pl
 import datetime as dt
-from research.signals import get_signal, construct_signals
-from research.filters import get_filter, apply_filters
-from research.alpha_constructors import get_alpha_constructor, construct_alphas
-from research.portfolios import construct_quantile_portfolios
 from research.returns import construct_returns_from_weights
 import great_tables as gt
 from pathlib import Path
@@ -49,9 +45,9 @@ for signal_name in signal_names:
             f"weights/{signal_weights_name}/{signal_weights_name}_*.parquet"
         )
         .filter(pl.col("date").is_between(start, end))
-        # .with_columns(
-        #     pl.col('weight').truediv(pl.col('weight').sum()).over('date') # unit leverage
-        # )
+        .with_columns(
+            pl.col('weight').truediv(pl.col('weight').abs().sum()).over('date') # unit leverage
+        )
         .collect()
     )
 
@@ -117,7 +113,7 @@ cumulative_returns = (
     .with_columns(pl.col("return").log1p().cum_sum().mul(100).over("signal"))
     .rename({"date": "Date", "return": "Return", "signal": "Signal"})
 )
-print(cumulative_returns)
+
 plt.figure(figsize=(10, 6))
 
 sns.lineplot(cumulative_returns, x="Date", y="Return", hue="Signal")
