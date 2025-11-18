@@ -9,14 +9,11 @@ from tqdm import tqdm
 
 
 def crsp_ff3_betas_flow(
-    start: dt.date | None = None, end: dt.date | None = None
+    start: dt.date, end: dt.date
 ) -> None:
-    start = start or dt.date(1926, 7, 1)
-    end = end or dt.date.today()
-
     df_crsp = pl.read_parquet("data/crsp/crsp_*.parquet").sort("permno", "date")
 
-    df_ff3fm = pl.read_parquet("data/fama_french/ff3_factors.parquet")
+    df_ff3fm = pl.read_parquet("data/fama_french_factors/fama_french_factors.parquet").select()
 
     df_merge = (
         df_crsp.join(other=df_ff3fm, on="date", how="left")

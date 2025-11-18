@@ -24,7 +24,7 @@ def main(signal_name: str, year: int, gamma: float, n_cpus: int | None):
     click.echo(f"Processing signal={signal_name} for year={year} with {n_cpus} CPUs")
     
     alphas = (
-        pl.scan_parquet(f"alphas/{signal_name}.parquet")
+        pl.scan_parquet(f"data/alphas/{signal_name}.parquet")
         .join(
             pl.scan_parquet("data/barra/barra_*.parquet").select('date', 'barrid', 'predicted_beta'),
             on=['date', 'barrid'],

@@ -6,7 +6,7 @@ import sf_quant.data as sfd
 from tqdm import tqdm
 
 
-def barra_history_fow(start: dt.date, end: dt.date) -> None:
+def barra_history_flow(start: dt.date, end: dt.date) -> None:
     data = sfd.load_assets(
         start=start,
         end=end,
@@ -38,4 +38,4 @@ def barra_history_fow(start: dt.date, end: dt.date) -> None:
 
 
 if __name__ == "__main__":
-    barra_history_fow(start=dt.date(1995, 7, 31), end=dt.date.today())
+    barra_history_flow(start=dt.date(1995, 7, 31), end=dt.date.today())

@@ -53,7 +53,7 @@ echo "Memory: 20G"
 echo "=========================================="
 
 # Run the Python script (no dataset parameter needed)
-srun python get_signal_weights.py "$signal" "$year" "$gamma"
+srun python backtester "$signal" "$year" "$gamma"
 
 # Check exit status
 if [ $? -eq 0 ]; then
