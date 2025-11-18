@@ -15,9 +15,9 @@ start = end = None
 n_bins = 10
 weighting_scheme = "equal"
 rebalance_frequency = "monthly"
-annualize_results = True
+annualize_results = False
 
-signal_names = ["momentum", "idiosyncratic_momentum_fama_french_3", "volatility_scaled_idiosyncratic_momentum_fama_french_3"]
+signal_names = ["momentum", "volatility_scaled_idiosyncratic_momentum_fama_french_3"]
 
 filter_names = [
     "penny-stocks",
@@ -73,9 +73,6 @@ for signal_name in signal_names:
     Path(file_path).parent.mkdir(parents=True, exist_ok=True)
 
     print("Saving results...")
-    create_quantile_returns_chart(
-        returns=returns, n_bins=n_bins, title=title, file_path=file_path
-    )
     create_quantile_summary_table(
         returns=returns,
         file_path=file_path,

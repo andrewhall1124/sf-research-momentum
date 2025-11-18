@@ -13,10 +13,10 @@ def crsp_ff3_betas_flow(
 ) -> None:
     df_crsp = pl.read_parquet("data/crsp/crsp_*.parquet").sort("permno", "date")
 
-    df_ff3fm = pl.read_parquet("data/fama_french_factors/fama_french_factors.parquet").select()
+    df_ff3 = pl.read_parquet("data/fama_french_factors/fama_french_factors.parquet")
 
     df_merge = (
-        df_crsp.join(other=df_ff3fm, on="date", how="left")
+        df_crsp.join(other=df_ff3, on="date", how="left")
         .with_columns(pl.col("return").sub("rf").alias("return_rf"))
         .filter(pl.col("date").is_between(start, end))
         .sort("permno", "date")

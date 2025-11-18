@@ -10,12 +10,12 @@ def main():
     start = dt.date(1963, 7, 31)
     end = dt.date(2024, 12, 31)
 
-    # Base datasets
-    crsp_history_flow(start, end)
-    barra_history_flow(start, end)
+    # # Base datasets
+    # crsp_history_flow(start, end)
+    # barra_history_flow(start, end)
 
-    # Factor datasets
-    fama_french_factors_history_flow()
+    # # Factor datasets
+    # fama_french_factors_history_flow()
 
     # Betas
     crsp_ff3_betas_flow(start, end)
