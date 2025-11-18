@@ -8,9 +8,9 @@ import os
 @click.command()
 @click.argument('signal_name', type=str)
 @click.argument('year', type=int)
-@click.option('--n-cpus', type=int, default=None, help='Number of CPUs to use (defaults to SLURM_CPUS_PER_TASK or 8)')
-@click.option('--gamma', type=float, default=2.0, help='Risk aversion parameter')
-def main(signal_name: str, year: int, n_cpus: int | None, gamma: float):
+@click.argument('gamma', type=float)
+@click.option('--n-cpus', type=int, default=None, help='Number of CPUs to use')
+def main(signal_name: str, year: int, gamma: float, n_cpus: int | None):
     """
     Backtest a signal for a specific year and generate portfolio weights.
     
@@ -47,7 +47,7 @@ def main(signal_name: str, year: int, n_cpus: int | None, gamma: float):
         n_cpus=n_cpus
     )
     
-    output_path = Path(f"weights/{signal_name}/{signal_name}_{year}")
+    output_path = Path(f"weights/{signal_name}/gamma_{gamma}/{signal_name}_{year}")
     output_path.parent.mkdir(parents=True, exist_ok=True)
     weights.write_parquet(output_path.with_suffix(".parquet"))
     

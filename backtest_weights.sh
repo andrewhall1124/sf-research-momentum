@@ -12,6 +12,9 @@
 # Create logs directory if it doesn't exist
 mkdir -p logs
 
+# Parameters
+gamma=60
+
 # Define signals
 signals=("momentum" "volatility_scaled_idiosyncratic_momentum_fama_french_3" "idiosyncratic_momentum_fama_french_3")
 
@@ -44,17 +47,18 @@ echo "SLURM Job ID: $SLURM_JOB_ID"
 echo "SLURM Array Task ID: $SLURM_ARRAY_TASK_ID"
 echo "Signal: $signal"
 echo "Year: $year"
+echo "Gamma: $gamma"
 echo "CPUs: $SLURM_CPUS_PER_TASK"
 echo "Memory: 20G"
 echo "=========================================="
 
 # Run the Python script (no dataset parameter needed)
-srun python get_signal_weights.py "$signal" "$year"
+srun python get_signal_weights.py "$signal" "$year" "$gamma"
 
 # Check exit status
 if [ $? -eq 0 ]; then
-    echo "✓ Task completed successfully: signal=$signal, year=$year"
+    echo "✓ Task completed successfully: signal=$signal, year=$year gamma=$gamma"
 else
-    echo "✗ Task failed: signal=$signal, year=$year"
+    echo "✗ Task failed: signal=$signal, year=$year gamma=$gamma"
     exit 1
 fi

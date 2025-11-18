@@ -8,8 +8,9 @@ import matplotlib.pyplot as plt
 
 sample = "out-of-sample"
 # sample = "select-sample"
-rebalance_frequency = "daily"
+rebalance_frequency = "monthly"
 annualize_results = True
+gamma = 60.0
 
 signal_names = [
     "momentum",
@@ -33,7 +34,7 @@ match sample:
 
 returns_list = []
 for signal_name in signal_names:
-    base_scan = pl.scan_parquet(f"weights/{signal_name}/{signal_name}_*.parquet")
+    base_scan = pl.scan_parquet(f"weights/{signal_name}/gamma_{gamma}/{signal_name}_*.parquet")
     
     match rebalance_frequency:
         case 'daily':
@@ -96,7 +97,7 @@ summary_table = (
 )
 
 title = "Momentum Variations"
-file_path = "results/experiment_3/combined"
+file_path = f"results/experiment_3/{rebalance_frequency}_combined"
 Path(file_path).parent.mkdir(parents=True, exist_ok=True)
 
 table = (
