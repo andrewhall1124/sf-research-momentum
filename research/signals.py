@@ -87,6 +87,15 @@ def idio_mom_ff3(id_col: str) -> Signal:
         lookback_days=252,
     )
 
+# def constant_volatility_scaled_momentum(id_col: str) -> Signal:
+
+
+
+#     return Signal(
+#         name="constant_volatility_scaled_momentum",
+#         expr=
+#     )
+
 
 def get_signal(name: str, id_col: str) -> Signal:
     match name:
