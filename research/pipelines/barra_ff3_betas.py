@@ -9,11 +9,8 @@ from tqdm import tqdm
 
 
 def barra_ff3_betas_flow(
-    start: dt.date | None = None, end: dt.date | None = None
+    start: dt.date, end: dt.date
 ) -> None:
-    start = start or dt.date(1995, 7, 31)
-    end = end or dt.date.today()
-
     df_barra = pl.read_parquet("data/barra/barra_*.parquet").sort("barrid", "date")
 
     df_ff3fm = pl.read_parquet("data/fama_french/ff3_factors.parquet")
@@ -86,10 +83,3 @@ def barra_ff3_betas_flow(
         file_path.parent.mkdir(parents=True, exist_ok=True)
 
         df_year.write_parquet(file_path)
-
-
-if __name__ == "__main__":
-    barra_ff3_betas_flow()
-    # barra_ff3_betas_flow(dt.date(2021, 1, 1), dt.date(2024, 12, 31))
-    # betas = pl.read_parquet("data/barra_ff3_betas/barra_ff3_betas_*.parquet").drop_nulls()
-    # print(betas)

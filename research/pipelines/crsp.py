@@ -29,7 +29,3 @@ def crsp_history_flow(start: dt.date, end: dt.date) -> None:
         year_data = data.filter(pl.col("date").is_between(year_start, year_end))
 
         year_data.write_parquet(file_path)
-
-
-if __name__ == "__main__":
-    crsp_history_flow(start=dt.date(1925, 1, 1), end=dt.date.today())

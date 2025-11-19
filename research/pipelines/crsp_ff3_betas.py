@@ -83,7 +83,3 @@ def crsp_ff3_betas_flow(
         file_path.parent.mkdir(parents=True, exist_ok=True)
 
         df_year.write_parquet(file_path)
-
-
-if __name__ == "__main__":
-    crsp_ff3_betas_flow()

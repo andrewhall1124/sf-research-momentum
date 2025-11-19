@@ -35,7 +35,3 @@ def barra_history_flow(start: dt.date, end: dt.date) -> None:
         year_data = data.filter(pl.col("date").is_between(year_start, year_end))
 
         year_data.write_parquet(file_path)
-
-
-if __name__ == "__main__":
-    barra_history_flow(start=dt.date(1995, 7, 31), end=dt.date.today())
