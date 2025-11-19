@@ -18,7 +18,7 @@ def alphas_flow(start: dt.date, end: dt.date):
 
     print("Loading data...")
     barra = pl.scan_parquet("data/barra/barra_*parquet")
-    ff3 = pl.scan_parquet("data/fama_french/ff3_factors.parquet")
+    ff3 = pl.scan_parquet("data/fama_french_factors/fama_french_factors.parquet")
     barra_ff3_betas = pl.scan_parquet("data/barra_ff3_betas/barra_ff3_betas_*.parquet")
 
     data = (

@@ -22,7 +22,7 @@ def create_quantile_summary_table(
     end: dt.date,
     title: str,
 ) -> pl.DataFrame:
-    factors = pl.read_parquet("data/fama_french/ff5_factors.parquet")
+    factors = pl.read_parquet("data/fama_french_factors/fama_french_factors.parquet")
 
     annual_factor = 1
 
@@ -132,7 +132,7 @@ def create_quantile_summary_table(
 
     )
 
-    table.save(output_file)
+    table.save(output_file, web_driver='chrome')
 
     return summary_table
 
@@ -242,7 +242,7 @@ def create_mve_summary_table(
         )
     )
 
-    table.save(output_file)
+    table.save(output_file, web_driver='chrome')
 
 
 def create_mve_returns_chart(returns: pl.DataFrame, name: str, file_path: Path) -> None:

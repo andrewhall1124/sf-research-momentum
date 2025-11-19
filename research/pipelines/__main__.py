@@ -18,8 +18,8 @@ def main():
     # fama_french_factors_history_flow()
 
     # Betas
-    crsp_ff3_betas_flow(start, end)
-    barra_ff3_betas_flow(start, end)
+    # crsp_ff3_betas_flow(start, end)
+    # barra_ff3_betas_flow(start, end)
 
     # Alphas
     alphas_flow(start, end)
