@@ -116,7 +116,7 @@ smom_monthly = (
         pl.col('return').log1p()
         .rolling_sum(window_size=21)
         .exp().sub(1)
-        .shift(-12)
+        .shift(-21)
         .alias('return_monthly')
     )
     .with_columns(
@@ -227,10 +227,6 @@ dmom_monthly = (
         .mul(21) # Scale to monthly
         .sqrt()
         .alias('vol_forecast')
-    )
-    .with_columns(
-        # Calculate weight based on volatility (shifted to avoid look-ahead)
-        pl.lit(vol_target).truediv(pl.col('vol_forecast')).alias('weight')
     )
     .with_columns(
         pl.col('gamma_0').add(pl.col('gamma_1').mul('interaction')).alias('return_forecast')
