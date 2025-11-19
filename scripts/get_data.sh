@@ -12,4 +12,4 @@
 
 
 source .venv/bin/activate
-python research/pipelines
+python research/data
