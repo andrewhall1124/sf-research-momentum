@@ -11,9 +11,9 @@ wheels/
 
 *.env
 
-.archive
-data
+/.archive
+/data
 *.parquet
-logs
+/logs
 *.out
 core.*
