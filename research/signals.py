@@ -87,14 +87,88 @@ def idio_mom_ff3(id_col: str) -> Signal:
         lookback_days=252,
     )
 
-# def constant_volatility_scaled_momentum(id_col: str) -> Signal:
+def cmom(id_col: str) -> Signal:
+    momentum = (
+        pl.col("return")
+        .log1p()
+        .rolling_sum(window_size=230) # 11 month momentum
+        .shift(22)
+        .over(id_col)
+    )
 
+    volatility_forecast = (
+        pl.col("return")
+        .pow(2)
+        .truediv(126)
+        .rolling_sum(window_size=126) # 6 month volatility
+        .mul(21)
+        .over(id_col)
+    )
 
+    return Signal(
+        name="constant_volatility_scaled_momentum",
+        expr=momentum.truediv(volatility_forecast).alias('constant_volatility_scaled_momentum'),
+        columns=['return', id_col],
+        lookback_days=252
+    )
 
-#     return Signal(
-#         name="constant_volatility_scaled_momentum",
-#         expr=
-#     )
+def smom(id_col: str) -> Signal:
+    momentum = (
+        pl.col("return")
+        .log1p()
+        .rolling_sum(window_size=230) # 11 month momentum
+        .shift(22)
+        .over(id_col)
+    )
+
+    return_squared_neg = (
+        pl.when(pl.col("return") < 0)
+        .then(pl.col("return").pow(2))
+        .otherwise(0)
+    )
+
+    volatility_forecast = (
+        return_squared_neg
+        .rolling_sum(window_size=126)
+        .mul(21 / 126)
+        .sqrt()
+        .over(id_col)
+    )
+
+    return Signal(
+        name="semi_volatility_scaled_momentum",
+        expr=momentum.truediv(volatility_forecast).alias('semi_volatility_scaled_momentum'),
+        columns=['return', id_col],
+        lookback_days=252
+    )
+
+def dmom(id_col: str) -> Signal:
+    momentum = (
+        pl.col("return")
+        .log1p()
+        .rolling_sum(window_size=230) # 11 month momentum
+        .shift(22)
+        .over(id_col)
+    )
+    volatility_forecast = (
+        pl.col("return")
+        .pow(2)
+        .truediv(126)
+        .rolling_sum(window_size=126) # 6 month volatility
+        .mul(21)
+        .over(id_col)
+    )
+
+    return_forecast = (
+        pl.col('gamma_0').add(pl.col('gamma_1').mul(pl.col('bear_indicator').mul('rmrf_variance')))
+    )
+        
+    return Signal(
+        name="dynamic_volatility_scaled_momentum",
+        expr=momentum.mul(return_forecast).truediv(volatility_forecast).alias('dynamic_volatility_scaled_momentum'),
+        columns=['return', id_col],
+        lookback_days=252
+    )
 
 
 def get_signal(name: str, id_col: str) -> Signal:
@@ -105,6 +179,12 @@ def get_signal(name: str, id_col: str) -> Signal:
             return idio_mom_vol_scaled_ff3(id_col)
         case "idiosyncratic_momentum_fama_french_3":
             return idio_mom_ff3(id_col)
+        case "constant_volatility_scaled_momentum":
+            return cmom(id_col)
+        case "semi_volatility_scaled_momentum":
+            return smom(id_col)
+        case "dynamic_volatility_scaled_momentum":
+            return dmom(id_col)
         case _:
             raise ValueError(f"{name} not implemented")
 

@@ -157,14 +157,10 @@ def load_market_data(start: dt.date, end: dt.date) -> pl.DataFrame:
             .alias("bear_indicator")
         )
         .with_columns(pl.col("rmrf").rolling_var(LOOKBACK_DAYS).alias("rmrf_variance"))
-        .with_columns(
-            pl.col("bear_indicator").mul(pl.col("rmrf_variance")).alias("interaction")
-        )
-        .sort('date')
-        .with_columns(
-            pl.col('interaction').shift(1)
-        )
-        .select("date", "r_mom", "interaction")
+        .with_columns(pl.col("rmrf").rolling_var(LOOKBACK_DAYS).alias("rmrf_variance"))
+        .sort("date")
+        .with_columns(pl.col("r_mom").shift(-1))
+        .select("date", "r_mom", "bear_indicator", "rmrf_variance")
         .collect()
     )
 
@@ -183,7 +179,7 @@ def get_month_dates(market_data: pl.DataFrame) -> list:
 
 def estimate_coefficients(data: pl.DataFrame) -> dict[str, None | float]:
     """Estimate regression coefficients for dynamic momentum strategy."""
-    data = data.drop_nulls()
+    data = data.drop_nulls().with_columns(pl.col('bear_indicator').mul('rmrf_variance').alias('interaction'))
 
     if len(data) == 0:
         return {"gamma_0": None, "gamma_1": None}
@@ -224,7 +220,7 @@ def calculate_dmom_strategy(
         .with_columns(calculate_volatility_forecast())
         .with_columns(
             pl.col("gamma_0")
-            .add(pl.col("gamma_1").mul("interaction"))
+            .add(pl.col("gamma_1").mul(pl.col('bear_indicator').mul('rmrf_variance')))
             .alias("return_forecast")
         )
         .with_columns(
@@ -347,7 +343,7 @@ def create_returns_chart(
     plt.savefig(file_path.with_suffix(".png"), dpi=300)
 
 
-def main():
+def experiment_5():
     """Main execution function."""
     # Load data
     month_end_dates = load_month_end_dates(
@@ -383,4 +379,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    experiment_5()

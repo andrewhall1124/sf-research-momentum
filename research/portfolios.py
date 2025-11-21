@@ -10,6 +10,7 @@ def construct_quantile_portfolios(
     labels = [str(i) for i in range(n_bins)]
     portfolios = data.with_columns(
         pl.col(signal.name)
+        # .rank(method='random', seed=47)
         .qcut(quantiles=n_bins, labels=labels)
         .cast(pl.String)
         .over("date")
