@@ -29,7 +29,7 @@ def experiment_2():
 
     print("Loading data...")
     crsp = pl.scan_parquet("data/crsp/crsp_*.parquet")
-    ff3 = pl.scan_parquet("data/fama_french_factors/fama_french_factors.parquet")
+    ff3 = pl.scan_parquet("data/fama_french_factors/ff5.parquet")
     crsp_ff3_betas = pl.scan_parquet("data/crsp_ff3_betas/crsp_ff3_betas_*.parquet")
 
     data = (

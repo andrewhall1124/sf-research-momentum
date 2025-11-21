@@ -13,7 +13,7 @@ def barra_ff3_betas_flow(
 ) -> None:
     df_barra = pl.read_parquet("data/barra/barra_*.parquet").sort("barrid", "date")
 
-    df_ff3fm = pl.read_parquet("data/fama_french_factors/fama_french_factors.parquet")
+    df_ff3fm = pl.read_parquet("data/fama_french_factors/ff5.parquet")
 
     df_merge = (
         df_barra.join(other=df_ff3fm, on="date", how="left")

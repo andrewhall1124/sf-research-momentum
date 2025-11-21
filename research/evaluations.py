@@ -22,7 +22,7 @@ def create_quantile_summary_table(
     end: dt.date,
     title: str,
 ) -> pl.DataFrame:
-    factors = pl.read_parquet("data/fama_french_factors/fama_french_factors.parquet")
+    factors = pl.read_parquet("data/fama_french_factors/ff5.parquet")
 
     annual_factor = 1
 

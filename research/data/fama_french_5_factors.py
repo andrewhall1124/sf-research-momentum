@@ -6,7 +6,7 @@ from pathlib import Path
 import polars as pl
 
 
-def fama_french_factors_history_flow() -> None:
+def fama_french_5_factors_history_flow() -> None:
     # URL for the Fama-French 3 factors (monthly data)
     ff_url = "https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/F-F_Research_Data_5_Factors_2x3_daily_CSV.zip"
 
@@ -54,7 +54,7 @@ def fama_french_factors_history_flow() -> None:
     )
 
     # Create output directory
-    file_path = Path("data/fama_french_factors/fama_french_factors.parquet")
+    file_path = Path("data/fama_french_factors/ff5.parquet")
     file_path.parent.mkdir(parents=True, exist_ok=True)
 
     # Save to parquet
