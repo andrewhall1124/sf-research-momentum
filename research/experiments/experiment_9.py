@@ -9,9 +9,9 @@ from pathlib import Path
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-def experiment_8():
-    start = dt.date(1963, 7, 31)
-    end = dt.date(2015, 12, 31)  
+def experiment_9():
+    start = dt.date(2016, 1, 1)
+    end = dt.date(2024, 12, 31)    
     n_bins = 10
     weighting_scheme = "market_cap"
     rebalance_frequency = "monthly"
@@ -102,7 +102,7 @@ def experiment_8():
     )
 
     title = "Volatility Scaled Momentum Variations"
-    file_path = "results/experiment_8/combined"
+    file_path = "results/experiment_9/combined"
     Path(file_path).parent.mkdir(parents=True, exist_ok=True)
 
     table = (
@@ -146,4 +146,4 @@ def experiment_8():
     plt.savefig(Path(file_path + "_chart").with_suffix(".png"))
 
 if __name__ == '__main__':
-    experiment_8()
+    experiment_9()

@@ -17,7 +17,7 @@ def experiment_7():
     rebalance_frequency = "monthly"
     annualize_results = True
 
-    signal_names = ["momentum", "constant_volatility_scaled_momentum", "semi_volatility_scaled_momentum", "dynamic_volatility_scaled_momentum"]
+    signal_names = ["momentum", "constant_volatility_scaled_momentum", "semi_volatility_scaled_momentum"]
     filter_names = [
         "low-price-stocks",
         "null-signal",

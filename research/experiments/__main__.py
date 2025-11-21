@@ -6,6 +6,7 @@ from experiment_5 import experiment_5
 from experiment_6 import experiment_6
 from experiment_7 import experiment_7
 from experiment_8 import experiment_8
+from experiment_9 import experiment_9
 
 def main():
     print("Running experiment 1...")
@@ -31,6 +32,9 @@ def main():
 
     print("Running experiment 8...")
     experiment_8()
+
+    print("Running experiment 9...")
+    experiment_9()
 
 if __name__ == '__main__':
     main()
