@@ -11,7 +11,6 @@ def experiment_10():
     annualize_results = True
     gamma = 60.0
     start = dt.date(2016, 1, 1)
-    # start = dt.date(2000, 1, 1)
     end = dt.date(2024, 12, 31)
 
     signal_names = [

@@ -5,7 +5,7 @@ from research.models import Constraint, Signal
 
 
 def construct_quantile_portfolios(
-    data: pl.DataFrame, n_bins: int, signal: Signal, weighting_scheme: str
+    data: pl.DataFrame, n_bins: int, signal: Signal, weighting_scheme: str, drop_null: bool = True
 ) -> pl.DataFrame:
     labels = [str(i) for i in range(n_bins)]
     portfolios = data.with_columns(
@@ -16,6 +16,9 @@ def construct_quantile_portfolios(
         .over("date")
         .alias("bin")
     )
+
+    if drop_null:
+        portfolios = portfolios.filter(pl.col('bin').ne('null'))
 
     if weighting_scheme == "equal":
         return portfolios.with_columns(

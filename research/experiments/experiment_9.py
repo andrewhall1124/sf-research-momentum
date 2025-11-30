@@ -13,7 +13,7 @@ def experiment_9():
     start = dt.date(2016, 1, 1)
     end = dt.date(2024, 12, 31)    
     n_bins = 10
-    weighting_scheme = "market_cap"
+    weighting_scheme = "equal"
     rebalance_frequency = "monthly"
     annualize_results = True
 
