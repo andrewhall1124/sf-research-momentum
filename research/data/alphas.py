@@ -8,9 +8,11 @@ from pathlib import Path
 
 def alphas_flow(start: dt.date, end: dt.date):
     signal_names = [
-        "momentum",
-        "idiosyncratic_momentum_fama_french_3",
-        "volatility_scaled_idiosyncratic_momentum_fama_french_3",
+        # "momentum",
+        # "idiosyncratic_momentum_fama_french_3",
+        # "volatility_scaled_idiosyncratic_momentum_fama_french_3",
+        "constant_volatility_scaled_momentum",
+        "semi_volatility_scaled_momentum",
     ]
     
     filter_names = ["low-price-stocks"]
@@ -52,3 +54,5 @@ def alphas_flow(start: dt.date, end: dt.date):
         output_path.parent.mkdir(parents=True, exist_ok=True)
         alphas.write_parquet(output_path.with_suffix(".parquet"))
 
+if __name__ == '__main__':
+    alphas_flow(dt.date(1995, 7, 31), dt.date(2024, 12, 31))

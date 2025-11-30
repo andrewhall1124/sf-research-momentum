@@ -105,9 +105,17 @@ def cmom(id_col: str) -> Signal:
         .over(id_col)
     )
 
+    vol_scaled_momentum = momentum / volatility_forecast
+
+    clean_vol_scaled_momentum = (
+        pl.when(vol_scaled_momentum.is_infinite())
+        .then(pl.lit(None))
+        .otherwise(vol_scaled_momentum)
+    )
+
     return Signal(
         name="constant_volatility_scaled_momentum",
-        expr=momentum.truediv(volatility_forecast).alias('constant_volatility_scaled_momentum'),
+        expr=clean_vol_scaled_momentum.alias('constant_volatility_scaled_momentum'),
         columns=['return', id_col],
         lookback_days=252
     )
@@ -135,9 +143,17 @@ def smom(id_col: str) -> Signal:
         .over(id_col)
     )
 
+    vol_scaled_momentum = momentum / volatility_forecast
+
+    clean_vol_scaled_momentum = (
+        pl.when(vol_scaled_momentum.is_infinite())
+        .then(pl.lit(None))
+        .otherwise(vol_scaled_momentum)
+    )
+
     return Signal(
         name="semi_volatility_scaled_momentum",
-        expr=momentum.truediv(volatility_forecast).alias('semi_volatility_scaled_momentum'),
+        expr=clean_vol_scaled_momentum.alias('semi_volatility_scaled_momentum'),
         columns=['return', id_col],
         lookback_days=252
     )
