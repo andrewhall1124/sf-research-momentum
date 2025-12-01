@@ -19,7 +19,8 @@ def experiment_8():
 
     signal_names = ["momentum", "constant_volatility_scaled_momentum", "semi_volatility_scaled_momentum"]
     filter_names = [
-        "low-price-stocks",
+        "penny-stocks",
+        "micro-caps",
         "null-signal",
     ]
 

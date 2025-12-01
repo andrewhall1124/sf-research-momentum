@@ -8,9 +8,7 @@ from pathlib import Path
 import great_tables as gt
 
 # Constants
-START_DATE = dt.date(
-    2016, 1, 1
-)  # instead of 2018 so that we get the whole sample of observations starting in 2018
+START_DATE = dt.date(2018, 1, 1)
 END_DATE = dt.date(2024, 12, 31)
 VOL_TARGET = 4.35 / 100
 LAMBDA = 1  #  .25
